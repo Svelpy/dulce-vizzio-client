@@ -4,7 +4,6 @@
 	import { onMount } from 'svelte';
 	import { AuthService } from '$lib/services';
 	import { UserIcon, BookIcon, HomeDotIcon } from '$lib/icons/outline';
-	import { HomeIcon } from '$lib/icons/solid';
 
 	let mobileMenuOpen = $state(false);
 	let userMenuOpen = $state(false);
@@ -63,18 +62,19 @@
 	});
 </script>
 
-<nav class="fixed top-0 right-0 left-0 z-50 bg-light-two dark:bg-dark-two">
-	<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-		<div class="flex h-16 items-center justify-between">
-			<!-- Logo -->
-			<div class="flex items-center">
+<nav
+	class="fixed top-0 right-0 left-16 z-50 border-b border-b-light-five bg-light-two dark:bg-dark-two"
+>
+	<div class="container mx-auto px-4">
+		<div class="flex h-16 w-full items-center justify-between">
+			<div class=" flex items-center">
 				<div class="flex items-center">
 					<img src="/images/logo_dulce_vizzio.png" alt="Logo Dulce Vizzio" class="h-12 w-16" />
 				</div>
 			</div>
 
 			<!-- Desktop Navigation -->
-			<div class="hidden items-center gap-6 md:flex">
+			<!-- <div class="hidden items-center gap-6 md:flex">
 				{#each navLinks as link}
 					<a
 						href={link.href}
@@ -85,10 +85,10 @@
 						{link.label}
 					</a>
 				{/each}
-			</div>
+			</div> -->
 
 			<!-- Search Bar (Desktop) -->
-			<div class="mx-8 hidden max-w-md flex-1 lg:block">
+			<!-- <div class="mx-8 hidden max-w-md flex-1 lg:block">
 				<form onsubmit={handleSearch} class="relative">
 					<input
 						type="text"
@@ -110,7 +110,7 @@
 						/>
 					</svg>
 				</form>
-			</div>
+			</div> -->
 
 			<!-- Right Side: User Menu -->
 			<div class="flex items-center gap-4">
@@ -118,10 +118,10 @@
 					<div class="user-menu-container relative hidden md:block">
 						<button
 							onclick={toggleUserMenu}
-							class="flex items-center gap-2 rounded-full bg-light-one px-3 py-2 text-sm text-light-black transition-colors hover:bg-gray-700"
+							class="rounded-full bg-light-one p-3 text-sm text-light-black transition-colors hover:bg-light-one_d"
 						>
-							<UserIcon class="h-6 w-6" />
-							<span class="hidden lg:block">{user.name || 'Usuario'}</span>
+							<UserIcon class="h-5 w-5" />
+							<!-- <span class="hidden lg:block">{user.name || 'Usuario'}</span> -->
 						</button>
 
 						{#if userMenuOpen}

@@ -27,3 +27,4 @@ export { default as SunIcon } from './sunIcon.svelte';
 export { default as LogoutIcon } from './logoutIcon.svelte';
 export { default as ShieldIcon } from './shieldIcon.svelte';
 export { default as StarIcon } from './starIcon.svelte';
+export { default as YoutubeIcon } from './youtubeIcon.svelte';

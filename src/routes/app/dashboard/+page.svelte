@@ -7,6 +7,7 @@
 	import { EnrollmentsService, CoursesService, AuthService } from '$lib/services';
 	import type { Enrollment, Course, User } from '$lib/interfaces';
 	import { UsersIcon, TrendingUpIcon, CashIcon, HomeDotIcon } from '$lib/icons/outline';
+	import { Button } from '$lib/components/ui';
 
 	let myEnrollments: Enrollment[] = $state([]);
 	let enrolledCourses: Course[] = $state([]);
@@ -65,18 +66,15 @@
 </script>
 
 <div class="space-y-8">
-	<!-- Welcome Header -->
-	<div
-		class="from-rose/10 via-cream to-gold/10 border-grey/20 rounded-xl border bg-gradient-to-r p-8"
-	>
-		<h1 class="mb-2 text-3xl font-bold text-gray-900">
-			¡Bienvenido de vuelta, {user?.full_name || 'Estudiante'}! 👋
+	<div class="">
+		<h1 class="mb-2 text-3xl font-bold text-light-black">
+			¡Bienvenido de vuelta, <span class="text-light-three dark:text-dark-two">
+				{user?.full_name || 'Estudiante'}</span
+			>! 👋
 		</h1>
-		<p class="text-gray-600">Continúa tu viaje de aprendizaje en repostería</p>
 	</div>
 
-	<!-- Stats Cards -->
-	<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+	<!-- <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
 		<StatsCard title="Cursos Activos" value={activeCourses} color="rose">
 			{#snippet icon()}
 				<HomeDotIcon class="h-6 w-6" />
@@ -100,7 +98,7 @@
 				<UsersIcon class="h-6 w-6" />
 			{/snippet}
 		</StatsCard>
-	</div>
+	</div> -->
 
 	<!-- Continue Learning -->
 	{#if loading}
@@ -138,24 +136,18 @@
 			{/if}
 		</div>
 	{:else}
-		<div class="border-grey/30 rounded-xl border bg-white p-12 text-center">
+		<div class="rounded-xl p-12 text-center">
 			<div class="mb-4 text-6xl">📚</div>
 			<h3 class="mb-2 text-xl font-bold text-gray-900">No tienes cursos activos</h3>
 			<p class="mb-6 text-gray-600">Explora nuestro catálogo y comienza a aprender</p>
-			<button
-				onclick={() => goto('/app/courses')}
-				class="bg-rose hover:bg-rose/90 inline-flex items-center gap-2 rounded-lg px-6 py-3 font-semibold text-white transition-colors"
-			>
-				Explorar Cursos
-			</button>
+			<Button onclick={() => goto('/app/courses')} variant="ghost">Explorar Cursos</Button>
 		</div>
 	{/if}
 
-	<!-- Recommended Courses -->
 	{#if recommendedCourses.length > 0}
 		<div>
-			<h2 class="mb-6 text-2xl font-bold text-gray-900">Cursos Recomendados</h2>
-			<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+			<h2 class="mb-6 text-2xl font-bold text-light-black">Cursos Recomendados</h2>
+			<div class="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-6">
 				{#each recommendedCourses as course (course.id)}
 					<CourseCard {course} onclick={() => goto(`/app/courses/${course.slug}`)} />
 				{/each}

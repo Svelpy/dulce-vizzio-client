@@ -177,11 +177,11 @@
 							{/if}
 						</button>
 					</div>
-					<div class="forgot-password">
+					<!-- <div class="forgot-password">
 						<button type="button" class="forgot-link" style="color: {colors.taupe};">
 							¿Olvidaste tu contraseña?
 						</button>
-					</div>
+					</div> -->
 				</div>
 
 				<!-- Error Message -->
@@ -217,19 +217,12 @@
 			</form>
 
 			<!-- Footer -->
-			<div class="footer">
+			<!-- <div class="footer">
 				<p class="footer-text" style="color: {colors.taupe};">¿Aún no eres parte de la academia?</p>
 				<button type="button" class="register-link" style="color: {colors.gold};">
 					Crear una cuenta nueva
 				</button>
-			</div>
-		</div>
-
-		<!-- Decoración inferior -->
-		<div class="bottom-decoration">
-			{#each Array(3) as _, i}
-				<div class="dot" style="background-color: {colors.gold};"></div>
-			{/each}
+			</div> -->
 		</div>
 	</div>
 </div>

@@ -10,11 +10,11 @@
 	let { name, role, comment, rating, avatarUrl }: Props = $props();
 </script>
 
-<div class="border-grey/30 rounded-xl border bg-white p-6 shadow-sm">
+<div class="p-6">
 	<!-- Header -->
-	<div class="mb-4 flex items-center gap-4">
+	<div class="mb-4 flex flex-col items-center gap-4 lg:flex-row">
 		<!-- Avatar -->
-		<div class="bg-cream h-12 w-12 flex-shrink-0 overflow-hidden rounded-full">
+		<div class="h-12 w-12 flex-shrink-0 overflow-hidden rounded-full bg-light-three">
 			{#if avatarUrl}
 				<img src={avatarUrl} alt={name} class="h-full w-full object-cover" />
 			{:else}
@@ -30,13 +30,6 @@
 		<div class="flex-1">
 			<h4 class="font-bold text-gray-900">{name}</h4>
 			<p class="text-sm text-gray-600">{role}</p>
-		</div>
-
-		<!-- Rating -->
-		<div class="flex gap-0.5">
-			{#each Array(5) as _, i}
-				<span class="text-lg {i < rating ? 'text-gold' : 'text-grey/40'}">★</span>
-			{/each}
 		</div>
 	</div>
 

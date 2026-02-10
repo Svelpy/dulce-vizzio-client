@@ -10,7 +10,7 @@
 </script>
 
 <button
-	class="group border-grey/30 hover:border-rose/50 relative cursor-pointer overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-lg"
+	class="group relative cursor-pointer overflow-hidden rounded-xl p-6 transition-all duration-300 hover:scale-105 hover:shadow-lg"
 	{onclick}
 >
 	<!-- Icon -->

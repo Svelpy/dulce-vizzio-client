@@ -10,11 +10,11 @@
 	);
 </script>
 
-<div class="min-h-screen bg-gray-50">
+<div class="min-h-dvh bg-light-one dark:bg-dark-one">
 	<Navbar />
 	<Sidebar />
 
-	<main class="p-4 pt-20 transition-all duration-300 {mainMargin}">
+	<main class="mx-auto p-4 pt-20 transition-all duration-300 {mainMargin}">
 		{@render children?.()}
 	</main>
 </div>

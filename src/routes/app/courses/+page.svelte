@@ -101,17 +101,15 @@
 </script>
 
 <div class="space-y-8">
-	<!-- Header -->
-	<div>
-		<h1 class="mb-2 text-3xl font-bold text-gray-900">Catálogo de Cursos</h1>
-		<p class="text-gray-600">Explora todos nuestros cursos de repostería profesional</p>
-	</div>
+	<!-- <div>
+		<h1 class="mb-2 text-3xl font-bold text-light-black">Catálogo de Cursos</h1>
+	</div> -->
 
 	<!-- Filters -->
-	<div class="border-grey/30 rounded-xl border bg-white p-6 shadow-sm">
+	<div class="rounded-xl border border-light-four p-6">
 		<div class="mb-4 flex items-center gap-2">
 			<FiltersIcon class="text-taupe h-5 w-5" />
-			<h2 class="text-lg font-bold text-gray-900">Filtros</h2>
+			<h2 class="text-lg font-bold text-light-black">Filtros</h2>
 		</div>
 
 		<div class="grid gap-4 md:grid-cols-3">
@@ -123,11 +121,7 @@
 					onkeydown={(e) => {
 						if (e.key === 'Enter') handleSearch();
 					}}
-				>
-					{#snippet leftIcon()}
-						<ZoomIcon class="h-4 w-4" />
-					{/snippet}
-				</Input>
+				></Input>
 			</div>
 
 			<!-- Category -->
@@ -178,7 +172,7 @@
 			></div>
 		</div>
 	{:else if courses.length > 0}
-		<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+		<div class="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
 			{#each courses as course (course.id)}
 				<CourseCard {course} onclick={() => handleCourseClick(course.slug)} />
 			{/each}

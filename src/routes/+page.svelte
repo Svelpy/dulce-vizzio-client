@@ -9,18 +9,29 @@
 	import { CoursesService } from '$lib/services';
 	import type { Course } from '$lib/interfaces';
 	import { onMount } from 'svelte';
+	import { FACEBOOK_URL, INSTAGRAM_URL, TIKTOK_URL, YOUBUBE_URL } from '$lib/constants';
+	import { FacebookIcon, InstagramIcon, TikTokIcon } from '$lib/icons/outline';
+	import { YoutubeIcon } from '$lib/icons/solid';
 
 	let featuredCourses: Course[] = $state([]);
 	let loading = $state(true);
 
 	// Categories data
 	const categories = [
-		{ title: 'Pasteles', icon: '🎂', description: 'Aprende a hacer pasteles increíbles' },
-		{ title: 'Macarons', icon: '🍪', description: 'Domina el arte francés' },
-		{ title: 'Chocolatería', icon: '🍫', description: 'Trabaja con chocolate profesional' },
-		{ title: 'Panes', icon: '🥖', description: 'Panadería artesanal' },
-		{ title: 'Decoración', icon: '🎨', description: 'Técnicas de decoración avanzadas' },
-		{ title: 'Postres', icon: '🍰', description: 'Postres gourmet y clásicos' }
+		{ title: 'Queques', icon: '🍰', description: 'Queques clásicos y modernos para toda ocasión' },
+		{ title: 'Panadería', icon: '🥖', description: 'Panadería artesanal y técnicas profesionales' },
+		{ title: 'Postres', icon: '🍮', description: 'Postres tradicionales y gourmet' },
+		{
+			title: 'Decoración',
+			icon: '🎨',
+			description: 'Decoración creativa y acabados profesionales'
+		},
+		{ title: 'Sin horno', icon: '❄️', description: 'Recetas deliciosas sin necesidad de hornear' },
+		{
+			title: 'Eventos',
+			icon: '🎉',
+			description: 'Preparaciones especiales para eventos y celebraciones'
+		}
 	];
 
 	// Testimonials data
@@ -71,14 +82,20 @@
 	};
 </script>
 
-<div class="min-h-screen">
-	<Navbar />
-	<CategoryNav />
+<div class="min-h-dvh">
+	<div class="container mx-auto flex items-center justify-between p-4">
+		<div class="flex items-center">
+			<img src="/images/logo_dulce_vizzio.png" alt="Logo Dulce Vizzio" class="h-12 w-16" />
+		</div>
+		<div>
+			<Button variant="secondary" onclick={() => goto('/auth/sign-in')}>Iniciar Sesión</Button>
+		</div>
+	</div>
+	<!-- <Navbar /> -->
+	<!-- <CategoryNav /> -->
 
 	<!-- Hero Section -->
-	<section
-		class="relative overflow-hidden bg-gradient-to-br from-rose-50 via-orange-50 to-amber-50 px-4 py-24 pt-32"
-	>
+	<section class="relative overflow-hidden px-4 py-24 pt-16">
 		<div class="container mx-auto max-w-7xl">
 			<div class="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
 				<!-- Text Content -->
@@ -94,12 +111,7 @@
 						experto. Transforma tu pasión en una carrera exitosa.
 					</p>
 					<div class="flex flex-col justify-center gap-4 sm:flex-row lg:justify-start">
-						<Button
-							size="lg"
-							variant="primary"
-							onclick={() => goto('/app/courses')}
-							class="bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600"
-						>
+						<Button size="lg" variant="primary" onclick={() => goto('/app/courses')}>
 							Explorar Cursos
 						</Button>
 						<Button size="lg" variant="outline" onclick={() => goto('/auth/sign-in')}>
@@ -108,18 +120,14 @@
 					</div>
 
 					<!-- Stats -->
-					<div class="mt-12 grid grid-cols-3 gap-6 text-center lg:text-left">
+					<div class="mt-12 grid grid-cols-2 gap-6 text-center lg:text-left">
 						<div>
-							<p class="text-3xl font-bold text-rose-500">500+</p>
-							<p class="text-sm text-gray-600">Estudiantes</p>
+							<p class="text-3xl font-bold text-light-three dark:text-dark-three">1200+</p>
+							<p class="text-sm text-light-two dark:text-dark-two">Estudiantes</p>
 						</div>
 						<div>
-							<p class="text-3xl font-bold text-orange-500">50+</p>
-							<p class="text-sm text-gray-600">Cursos</p>
-						</div>
-						<div>
-							<p class="text-3xl font-bold text-amber-500">4.9</p>
-							<p class="text-sm text-gray-600">Calificación</p>
+							<p class="text-3xl font-bold text-light-three dark:text-dark-three">100+</p>
+							<p class="text-sm text-light-two dark:text-dark-two">Cursos</p>
 						</div>
 					</div>
 				</div>
@@ -135,13 +143,13 @@
 					</div>
 					<!-- Floating Badge -->
 					<div
-						class="absolute -bottom-6 -left-6 rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-100"
+						class="dark:ring-dark-five dark:bg-dark-five absolute -bottom-6 -left-6 rounded-2xl bg-light-five p-6 shadow-xl ring-1 ring-light-three"
 					>
 						<div class="flex items-center gap-4">
 							<div class="text-5xl">🎓</div>
 							<div>
-								<p class="text-3xl font-bold text-rose-500">500+</p>
-								<p class="text-sm text-gray-600">Estudiantes Activos</p>
+								<p class="text-3xl font-bold text-light-one dark:text-dark-one">500+</p>
+								<p class="text-sm text-light-one dark:text-dark-one">Estudiantes Activos</p>
 							</div>
 						</div>
 					</div>
@@ -151,11 +159,11 @@
 	</section>
 
 	<!-- Featured Courses -->
-	<section class="bg-gray-50 px-4 py-20">
+	<section class=" px-4 py-20">
 		<div class="container mx-auto max-w-7xl">
 			<div class="mb-12 text-center">
-				<h2 class="mb-4 text-4xl font-bold text-gray-900">Cursos Destacados</h2>
-				<p class="mx-auto max-w-2xl text-lg text-gray-600">
+				<h2 class="mb-4 text-4xl font-bold text-light-two dark:text-dark-two">Cursos Destacados</h2>
+				<p class="mx-auto max-w-2xl text-lg text-light-two_d dark:text-dark-two_d">
 					Explora nuestros cursos más populares y comienza tu viaje en la repostería profesional
 				</p>
 			</div>
@@ -167,9 +175,15 @@
 					></div>
 				</div>
 			{:else if featuredCourses.length > 0}
-				<div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+				<div class="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-6">
 					{#each featuredCourses as course (course.id)}
-						<CourseCard {course} onclick={() => handleCourseClick(course.slug)} />
+						<CourseCard
+							{course}
+							onclick={() => handleCourseClick(course.slug)}
+							priceVisible={false}
+							difficultyVisible={false}
+							contentVisible={false}
+						/>
 					{/each}
 				</div>
 				<div class="mt-12 text-center">
@@ -188,7 +202,7 @@
 	</section>
 
 	<!-- Categories -->
-	<section class="bg-white px-4 py-20">
+	<section class="px-4 py-20">
 		<div class="container mx-auto max-w-7xl">
 			<div class="mb-12 text-center">
 				<h2 class="mb-4 text-4xl font-bold text-gray-900">Categorías Populares</h2>
@@ -197,7 +211,7 @@
 				</p>
 			</div>
 
-			<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+			<div class="grid grid-cols-2 gap-6 md:grid-cols-3">
 				{#each categories as category}
 					<CategoryCard
 						title={category.title}
@@ -211,7 +225,7 @@
 	</section>
 
 	<!-- Testimonials -->
-	<section class="bg-gray-50 px-4 py-20">
+	<section class="px-4 py-20">
 		<div class="container mx-auto max-w-7xl">
 			<div class="mb-12 text-center">
 				<h2 class="mb-4 text-4xl font-bold text-gray-900">Lo Que Dicen Nuestros Estudiantes</h2>
@@ -220,7 +234,7 @@
 				</p>
 			</div>
 
-			<div class="grid gap-8 md:grid-cols-3">
+			<div class="grid grid-cols-2 gap-8 md:grid-cols-3">
 				{#each testimonials as testimonial}
 					<TestimonialCard {...testimonial} />
 				{/each}
@@ -229,7 +243,7 @@
 	</section>
 
 	<!-- CTA Section -->
-	<section class="bg-gradient-to-r from-rose-500 via-orange-500 to-amber-500 px-4 py-20">
+	<section class="bg-linear-to-r from-light-three via-light-two to-light-four px-4 py-20">
 		<div class="container mx-auto max-w-4xl text-center">
 			<h2 class="mb-6 text-4xl font-bold text-white md:text-5xl">¿Listo para Comenzar tu Viaje?</h2>
 			<p class="mb-8 text-xl text-white/90">
@@ -247,52 +261,90 @@
 	</section>
 
 	<!-- Footer -->
-	<footer class="bg-gray-900 px-4 py-12 text-white">
+	<footer class="px-4 py-12 text-light-two dark:text-dark-two">
 		<div class="container mx-auto max-w-7xl">
 			<div class="grid gap-8 md:grid-cols-4">
 				<!-- Brand -->
 				<div>
 					<h3 class="text-gold mb-4 text-2xl font-bold">Dulce Vizzio</h3>
-					<p class="text-gray-400">Tu plataforma de cursos de repostería profesional</p>
+					<p class="">Tu plataforma de cursos de repostería profesional</p>
 				</div>
 
 				<!-- Links -->
 				<div>
 					<h4 class="mb-4 font-bold">Cursos</h4>
-					<ul class="space-y-2 text-gray-400">
+					<ul class="space-y-2">
 						<li><a href="/app/courses" class="transition-colors hover:text-white">Explorar</a></li>
 						<li>
-							<a href="/app/courses?difficulty=BEGINNER" class="transition-colors hover:text-white"
-								>Principiantes</a
-							>
+							<a href="/app/courses?difficulty=BEGINNER" class="transition-colors">Principiante</a>
 						</li>
 						<li>
-							<a href="/app/courses?difficulty=ADVANCED" class="transition-colors hover:text-white"
-								>Avanzados</a
-							>
+							<a href="/app/courses?difficulty=BEGINNER" class="transition-colors">Intermedio</a>
+						</li>
+						<li>
+							<a href="/app/courses?difficulty=ADVANCED" class="transition-colors">Avanzado</a>
 						</li>
 					</ul>
 				</div>
 
 				<div>
 					<h4 class="mb-4 font-bold">Soporte</h4>
-					<ul class="space-y-2 text-gray-400">
-						<li><a href="#" class="transition-colors hover:text-white">Ayuda</a></li>
-						<li><a href="#" class="transition-colors hover:text-white">Contacto</a></li>
-						<li><a href="#" class="transition-colors hover:text-white">FAQ</a></li>
+					<ul class="space-y-2">
+						<li>
+							<a href="https://wa.me/59175618048" target="_blank" class="transition-colors"
+								>Ventas</a
+							>
+						</li>
+						<li>
+							<a href="https://wa.me/59175618048" target="_blank" class="transition-colors"
+								>Contacto</a
+							>
+						</li>
+						<li>
+							<a href="https://wa.me/59160984296" target="_blank" class="transition-colors"
+								>Pagina Web</a
+							>
+						</li>
+						<li><a href="#" class="transition-colors">FAQ</a></li>
 					</ul>
 				</div>
 
 				<div>
-					<h4 class="mb-4 font-bold">Legal</h4>
-					<ul class="space-y-2 text-gray-400">
-						<li><a href="#" class="transition-colors hover:text-white">Términos</a></li>
-						<li><a href="#" class="transition-colors hover:text-white">Privacidad</a></li>
+					<h4 class="mb-4 font-bold">Redes Sociales</h4>
+					<ul class="space-y-2">
+						<li class="flex space-x-1">
+							<span class="rounded-full bg-blue-500 p-1 text-white"><FacebookIcon /></span><a
+								target="_blank"
+								href={FACEBOOK_URL}
+								class="transition-colors">Facebook</a
+							>
+						</li>
+						<li class="flex space-x-1">
+							<span class="rounded-full bg-pink-500 p-1 text-white"><InstagramIcon /></span><a
+								target="_blank"
+								href={INSTAGRAM_URL}
+								class="transition-colors">Instagram</a
+							>
+						</li>
+						<li class="flex space-x-1">
+							<span class="rounded-full bg-red-500 p-1 text-white"><YoutubeIcon /></span><a
+								target="_blank"
+								href={YOUBUBE_URL}
+								class="transition-colors">Youtube</a
+							>
+						</li>
+						<li class="flex space-x-1">
+							<span class="rounded-full bg-black p-1 text-white"><TikTokIcon /></span><a
+								target="_blank"
+								href={TIKTOK_URL}
+								class="transition-colors">Tiktok</a
+							>
+						</li>
 					</ul>
 				</div>
 			</div>
 
-			<div class="mt-8 border-t border-gray-800 pt-8 text-center text-gray-400">
+			<div class="mt-8 border-t border-light-three pt-8 text-center">
 				<p>&copy; 2026 Dulce Vizzio. Todos los derechos reservados.</p>
 			</div>
 		</div>

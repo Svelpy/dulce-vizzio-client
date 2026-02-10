@@ -5,15 +5,12 @@
 		UserIcon,
 		UsersIcon,
 		HomeDotIcon,
-		ChevronLeftIcon,
 		ChevronsRightIcon,
 		ChevronsLeftIcon
 	} from '$lib/icons/outline';
-	import { HomeIcon } from '$lib/icons/solid';
 	import { onMount } from 'svelte';
 	import { AuthService } from '$lib/services';
 	import { sidebarState } from '$lib/stores/sidebar.store';
-	import ChevronRightIcon from '$lib/icons/outline/chevronRightIcon.svelte';
 
 	let user = $state<any>(null);
 	let isHovering = $state(false);
@@ -54,7 +51,6 @@
 		}
 	};
 
-	// Toggle expansion (icon-only <-> expanded)
 	const toggleExpansion = () => {
 		if ($sidebarState === 'icon-only') {
 			$sidebarState = 'expanded';
@@ -84,10 +80,9 @@
 	};
 </script>
 
-<!-- Toggle Button (Hamburger) - Fixed in header area -->
 <button
 	onclick={toggleVisibility}
-	class="fixed top-4 left-4 z-50 hidden h-8 w-8 items-center justify-center rounded text-gray-300 transition-all hover:text-white md:flex"
+	class="fixed top-0 left-0 z-50 hidden h-16 w-16 items-center justify-center border-r border-b border-r-light-five border-b-light-five bg-light-two text-light-one transition-all hover:text-light-one_d md:flex"
 	aria-label="Toggle sidebar"
 >
 	<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -101,7 +96,7 @@
 </button>
 
 <aside
-	class="fixed top-16 left-0 z-40 h-[calc(100vh-4rem)] border-r border-gray-700 bg-light-two transition-all duration-300 dark:bg-dark-two {getSidebarWidth()} {$sidebarState ===
+	class="fixed top-16 left-0 z-40 h-[calc(100vh-4rem)] border-r border-light-five bg-light-two transition-all duration-300 dark:bg-dark-two {getSidebarWidth()} {$sidebarState ===
 	'hidden'
 		? 'pointer-events-none -translate-x-full opacity-0'
 		: 'translate-x-0 opacity-100'}"
