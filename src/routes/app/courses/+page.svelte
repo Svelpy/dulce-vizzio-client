@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import CourseCard from '$lib/components/features/courses/courseCard.svelte';
+	import CourseCard from '$lib/components/features/course/courseCard.svelte';
 	import { Input, Select, Pagination, Button } from '$lib/components/ui';
 	import { CoursesService } from '$lib/services';
 	import type { Course, CourseFilters } from '$lib/interfaces';

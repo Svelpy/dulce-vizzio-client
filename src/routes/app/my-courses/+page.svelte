@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import CourseCard from '$lib/components/features/courses/courseCard.svelte';
-	import { EnrollmentsService, CoursesService } from '$lib/services';
+	import CourseCard from '$lib/components/features/course/courseCard.svelte';
+	import { EnrollmentsService, courseService } from '$lib/services';
 	import type { Enrollment, Course, EnrollmentStatus } from '$lib/interfaces';
 
 	let enrollments: Enrollment[] = $state([]);
@@ -34,7 +34,7 @@
 			// Load course details for each enrollment
 			const coursePromises = enrollments.map(async (enrollment) => {
 				try {
-					const course = await CoursesService.getBySlug(enrollment.course_id);
+					const course = await courseService.getCourseBySlug(enrollment.course_id);
 					return { id: enrollment.course_id, course };
 				} catch (error) {
 					console.error(`Error loading course ${enrollment.course_id}:`, error);

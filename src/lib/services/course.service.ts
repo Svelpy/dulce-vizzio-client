@@ -1,12 +1,9 @@
 import { apiAvicor } from '$lib/config/apiDulceVizzio.config';
-import type { Course, CourseFilters, CourseListResponse, Lesson } from '$lib/interfaces';
-
+import type { CourseDetail, CourseFilters, CourseListResponse, Lesson } from '$lib/interfaces';
+const BASE_PATH = '/courses';
 export class CoursesService {
-	private static readonly BASE_PATH = '/courses';
+	//	static BASE_PATH = '/courses';
 
-	/**
-	 * Get all courses with pagination and filters
-	 */
 	static async getAll(filters: CourseFilters = {}): Promise<CourseListResponse> {
 		const params = new URLSearchParams();
 
@@ -18,29 +15,22 @@ export class CoursesService {
 		if (filters.search) params.append('search', filters.search);
 
 		const queryString = params.toString();
-		const endpoint = queryString ? `${this.BASE_PATH}?${queryString}` : this.BASE_PATH;
+		const endpoint = queryString ? `${BASE_PATH}?${queryString}` : BASE_PATH;
 
 		return apiAvicor.get<CourseListResponse>(endpoint);
 	}
 
-	/**
-	 * Get a single course by slug
-	 */
-	static async getBySlug(slug: string): Promise<Course> {
-		return apiAvicor.get<Course>(`${this.BASE_PATH}/${slug}`);
+	async getCourseBySlug(slug: string): Promise<CourseDetail> {
+		return apiAvicor.get<CourseDetail>(`${BASE_PATH}/${slug}`);
 	}
 
-	/**
-	 * Get all lessons for a specific course
-	 */
 	static async getLessons(courseId: string): Promise<Lesson[]> {
-		return apiAvicor.get<Lesson[]>(`${this.BASE_PATH}/${courseId}/lessons`);
+		return apiAvicor.get<Lesson[]>(`${BASE_PATH}/${courseId}/lessons`);
 	}
 
-	/**
-	 * Get a single lesson by ID
-	 */
 	static async getLessonById(lessonId: string): Promise<Lesson> {
 		return apiAvicor.get<Lesson>(`/lessons/${lessonId}`);
 	}
 }
+
+export const courseService = new CoursesService();

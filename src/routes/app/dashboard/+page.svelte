@@ -1,9 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import StatsCard from '$lib/components/features/dashboard/statsCard.svelte';
-	import CourseProgress from '$lib/components/features/courses/courseProgress.svelte';
-	import CourseCard from '$lib/components/features/courses/courseCard.svelte';
+	import CourseCard from '$lib/components/features/course/courseCard.svelte';
 	import { EnrollmentsService, CoursesService, AuthService } from '$lib/services';
 	import type { Enrollment, Course, User } from '$lib/interfaces';
 	import { UsersIcon, TrendingUpIcon, CashIcon, HomeDotIcon } from '$lib/icons/outline';
@@ -33,11 +31,11 @@
 			myEnrollments = enrollmentsResponse.data;
 
 			// Load enrolled courses details
-			const coursePromises = myEnrollments.map((enrollment) =>
-				CoursesService.getBySlug(enrollment.course_id).catch(() => null)
-			);
-			const courses = await Promise.all(coursePromises);
-			enrolledCourses = courses.filter((c): c is Course => c !== null);
+			// const coursePromises = myEnrollments.map((enrollment) =>
+			// 	courseService.getCourseBySlug(enrollment.course_id).catch(() => null)
+			// );
+			// const courses = await Promise.all(coursePromises);
+			// enrolledCourses = courses.filter((c): c is Course => c !== null);
 
 			// Load recommended courses
 			const recommendedResponse = await CoursesService.getAll({ limit: 3, status: 'PUBLISHED' });
@@ -106,34 +104,6 @@
 			<div
 				class="border-rose h-12 w-12 animate-spin rounded-full border-4 border-t-transparent"
 			></div>
-		</div>
-	{:else if enrolledCourses.length > 0}
-		<div>
-			<h2 class="mb-6 text-2xl font-bold text-gray-900">Continuar Aprendiendo</h2>
-			<div class="space-y-4">
-				{#each enrolledCourses.slice(0, 3) as course (course.id)}
-					{@const enrollment = myEnrollments.find((e) => e.course_id === course.id)}
-					{@const progress = enrollment ? calculateProgress(enrollment, course) : 0}
-					<CourseProgress
-						{course}
-						{progress}
-						lastLessonTitle={enrollment?.last_accessed_lesson_id
-							? 'Lección en progreso'
-							: undefined}
-						onclick={() => handleCourseClick(course.id)}
-					/>
-				{/each}
-			</div>
-			{#if enrolledCourses.length > 3}
-				<div class="mt-6 text-center">
-					<button
-						onclick={() => goto('/app/my-courses')}
-						class="text-rose hover:text-rose/80 font-semibold transition-colors"
-					>
-						Ver todos mis cursos →
-					</button>
-				</div>
-			{/if}
 		</div>
 	{:else}
 		<div class="rounded-xl p-12 text-center">

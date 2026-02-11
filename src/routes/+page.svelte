@@ -3,9 +3,9 @@
 	import { Button } from '$lib/components/ui';
 	import Navbar from '$lib/components/ui/navbar.svelte';
 	import CategoryNav from '$lib/components/ui/categoryNav.svelte';
-	import CourseCard from '$lib/components/features/courses/courseCard.svelte';
-	import CategoryCard from '$lib/components/features/courses/categoryCard.svelte';
-	import TestimonialCard from '$lib/components/features/courses/testimonialCard.svelte';
+	import CourseCard from '$lib/components/features/course/courseCard.svelte';
+	import CategoryCard from '$lib/components/features/course/categoryCard.svelte';
+	import TestimonialCard from '$lib/components/features/course/testimonialCard.svelte';
 	import { CoursesService } from '$lib/services';
 	import type { Course } from '$lib/interfaces';
 	import { onMount } from 'svelte';
@@ -143,7 +143,7 @@
 					</div>
 					<!-- Floating Badge -->
 					<div
-						class="dark:ring-dark-five dark:bg-dark-five absolute -bottom-6 -left-6 rounded-2xl bg-light-five p-6 shadow-xl ring-1 ring-light-three"
+						class="absolute -bottom-6 -left-6 rounded-2xl bg-light-five p-6 shadow-xl ring-1 ring-light-three dark:bg-dark-five dark:ring-dark-five"
 					>
 						<div class="flex items-center gap-4">
 							<div class="text-5xl">🎓</div>

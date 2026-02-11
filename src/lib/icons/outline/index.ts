@@ -62,3 +62,4 @@ export { default as ClockIcon } from './clockIcon.svelte';
 export { default as PlayerPlayIcon } from './playerPlayIcon.svelte';
 export { default as ChevronsRightIcon } from './chevronsRightIcon.svelte';
 export { default as ChevronsLeftIcon } from './chevronsLeftIcon.svelte';
+export { default as XMarkIcon } from './xMarkIcon.svelte';

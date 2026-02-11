@@ -21,3 +21,4 @@ export { default as Pagination } from './pagination.svelte';
 export { default as Select } from './select.svelte';
 export { default as TextArea } from './textArea.svelte';
 export { default as Navbar } from './navbar.svelte';
+export { default as ErrorState } from './errorState.svelte';
