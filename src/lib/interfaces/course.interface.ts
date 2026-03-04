@@ -25,6 +25,7 @@ export interface Course extends BaseDocument {
 	enrollment_count: number;
 	lessons_count: number;
 	total_duration_hours: number;
+	is_enrolled: boolean;
 }
 
 // Filters for course listing

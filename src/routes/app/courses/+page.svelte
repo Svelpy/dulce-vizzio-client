@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
 	import CourseCard from '$lib/components/features/course/courseCard.svelte';
 	import { Input, Select, Pagination, Button } from '$lib/components/ui';
 	import { CoursesService } from '$lib/services';
@@ -11,9 +10,9 @@
 	let courses: Course[] = $state([]);
 	let loading = $state(true);
 	let totalCourses = $state(0);
-	let totalPages = $state(0);
+	let totalPages = $state(2000);
 
-	// Filters
+	// Filters — only sent when user explicitly picks a value
 	let searchQuery = $state('');
 	let selectedCategory = $state('');
 	let selectedDifficulty = $state('');
@@ -27,17 +26,10 @@
 		{ value: '', label: 'Todas las dificultades' },
 		{ value: 'BEGINNER', label: 'Principiante' },
 		{ value: 'INTERMEDIATE', label: 'Intermedio' },
-		{ value: 'ADVANCED', label: 'Avanzado' },
-		{ value: 'EXPERT', label: 'Experto' }
+		{ value: 'ADVANCED', label: 'Avanzado' }
 	];
 
 	onMount(() => {
-		// Get URL params
-		const params = new URLSearchParams($page.url.search);
-		searchQuery = params.get('search') || '';
-		selectedCategory = params.get('category') || '';
-		selectedDifficulty = params.get('difficulty') || '';
-
 		loadCourses();
 	});
 
@@ -46,8 +38,7 @@
 		try {
 			const filters: CourseFilters = {
 				page: currentPage,
-				limit: perPage,
-				status: 'PUBLISHED'
+				limit: perPage
 			};
 
 			if (searchQuery) filters.search = searchQuery;
@@ -58,6 +49,7 @@
 			courses = response.data;
 			totalCourses = response.total;
 			totalPages = response.pages;
+			console.log('courses', courses);
 		} catch (error) {
 			console.error('Error loading courses:', error);
 		} finally {
@@ -101,11 +93,6 @@
 </script>
 
 <div class="space-y-8">
-	<!-- <div>
-		<h1 class="mb-2 text-3xl font-bold text-light-black">Catálogo de Cursos</h1>
-	</div> -->
-
-	<!-- Filters -->
 	<div class="rounded-xl border border-light-four p-6">
 		<div class="mb-4 flex items-center gap-2">
 			<FiltersIcon class="text-taupe h-5 w-5" />
@@ -113,7 +100,6 @@
 		</div>
 
 		<div class="grid gap-4 md:grid-cols-3">
-			<!-- Search -->
 			<div>
 				<Input
 					bind:value={searchQuery}
@@ -124,7 +110,6 @@
 				></Input>
 			</div>
 
-			<!-- Category -->
 			<div>
 				<Select
 					bind:value={selectedCategory}
@@ -137,7 +122,6 @@
 				</Select>
 			</div>
 
-			<!-- Difficulty -->
 			<div>
 				<Select
 					bind:value={selectedDifficulty}
@@ -181,7 +165,13 @@
 		<!-- Pagination -->
 		{#if totalPages > 1}
 			<div class="flex justify-center">
-				<Pagination {currentPage} {totalPages} onPageChange={handlePageChange} />
+				<Pagination
+					{currentPage}
+					{totalPages}
+					{perPage}
+					total={totalCourses}
+					onPageChange={handlePageChange}
+				/>
 			</div>
 		{/if}
 	{:else}

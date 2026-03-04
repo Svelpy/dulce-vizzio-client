@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import { AuthService } from '$lib/services/auth.service';
 	import { authStore } from '$lib/stores/auth.store';
 	import { onMount } from 'svelte';
+	import { get } from 'svelte/store';
 
 	let email = '';
 	let password = '';
@@ -20,9 +22,9 @@
 	};
 
 	onMount(() => {
-		// Si ya está autenticado, redirigir
 		if (AuthService.isAuthenticated()) {
-			goto('/app/dashboard');
+			const redirectTo = get(page).url.searchParams.get('redirectTo') || '/app/dashboard';
+			goto(redirectTo);
 		}
 	});
 
@@ -32,9 +34,9 @@
 		loading = true;
 
 		try {
-			const response = await AuthService.login({ email, password });
-			authStore.setUser(response.user);
-			goto('/app/dashboard');
+			await authStore.login({ email, password });
+			const redirectTo = get(page).url.searchParams.get('redirectTo') || '/app/dashboard';
+			goto(redirectTo);
 		} catch (error: any) {
 			console.error('Error en login:', error);
 			errorMessage = error?.message || 'Credenciales inválidas. Por favor, intenta nuevamente.';

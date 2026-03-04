@@ -11,8 +11,8 @@ export class CoursesService {
 		if (filters.limit) params.append('limit', filters.limit.toString());
 		if (filters.category) params.append('category', filters.category);
 		if (filters.difficulty) params.append('difficulty', filters.difficulty);
-		if (filters.status) params.append('status', filters.status);
 		if (filters.search) params.append('search', filters.search);
+		// NOTE: 'status' is NOT sent — the backend resolves it based on the user's role
 
 		const queryString = params.toString();
 		const endpoint = queryString ? `${BASE_PATH}?${queryString}` : BASE_PATH;

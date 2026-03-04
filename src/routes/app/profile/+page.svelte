@@ -1,11 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { AuthService } from '$lib/services';
+	import { currentUser } from '$lib/stores/auth.store';
 	import { Button, Input } from '$lib/components/ui';
-	import { UserIcon, MailIcon, KeyIcon } from '$lib/icons/outline';
-	import type { User } from '$lib/interfaces';
+	import { MailIcon } from '$lib/icons/outline';
 
-	let user: User | null = $state(null);
 	let loading = $state(true);
 
 	// Form data
@@ -29,8 +27,7 @@
 	};
 
 	onMount(() => {
-		// Get user from localStorage (client-side only)
-		user = AuthService.getUser();
+		const user = $currentUser;
 		if (user) {
 			fullName = user.full_name || '';
 			username = user.username || '';
@@ -67,7 +64,7 @@
 			<div class="spinner"></div>
 			<p style="color: {colors.taupe};">Cargando perfil...</p>
 		</div>
-	{:else if user}
+	{:else if $currentUser}
 		<div class="profile-grid">
 			<!-- Profile Info Card -->
 			<div class="profile-card">
@@ -76,44 +73,46 @@
 					style="background: linear-gradient(135deg, {colors.rose}, {colors.gold});"
 				>
 					<div class="avatar-container">
-						{#if user.avatar_url}
-							<img src={user.avatar_url} alt={user.full_name} class="avatar" />
+						{#if $currentUser?.avatar_url}
+							<img src={$currentUser.avatar_url} alt={$currentUser.full_name} class="avatar" />
 						{:else}
 							<div
 								class="avatar-placeholder"
 								style="background-color: {colors.cream}; color: {colors.taupe};"
 							>
-								{user.full_name?.charAt(0) || 'U'}
+								{$currentUser?.full_name?.charAt(0) || 'U'}
 							</div>
 						{/if}
 					</div>
-					<h2 class="user-name">{user.full_name}</h2>
-					<p class="user-role" style="color: {colors.cream};">@{user.username}</p>
+					<h2 class="user-name">{$currentUser?.full_name}</h2>
+					<p class="user-role" style="color: {colors.cream};">@{$currentUser?.username}</p>
 					<span class="role-badge" style="background-color: {colors.gold};">
-						{user.role}
+						{$currentUser?.role}
 					</span>
 				</div>
 
 				<div class="card-body">
 					<div class="info-row">
 						<MailIcon class="info-icon" />
-						<span>{user.email}</span>
+						<span>{$currentUser?.email}</span>
 					</div>
-					{#if user.phone_number}
+					{#if $currentUser?.phone_number}
 						<div class="info-row">
 							<span style="color: {colors.taupe};">📱</span>
-							<span>{user.phone_number}</span>
+							<span>{$currentUser?.phone_number}</span>
 						</div>
 					{/if}
-					{#if user.birth_date}
+					{#if $currentUser?.birth_date}
 						<div class="info-row">
 							<span style="color: {colors.taupe};">🎂</span>
-							<span>{new Date(user.birth_date).toLocaleDateString()}</span>
+							<span>{new Date($currentUser.birth_date).toLocaleDateString()}</span>
 						</div>
 					{/if}
 					<div class="info-row">
 						<span style="color: {colors.taupe};">📅</span>
-						<span>Miembro desde {new Date(user.created_at).toLocaleDateString()}</span>
+						<span
+							>Miembro desde {new Date($currentUser?.created_at ?? '').toLocaleDateString()}</span
+						>
 					</div>
 				</div>
 			</div>
@@ -130,11 +129,7 @@
 				>
 					<div class="form-group">
 						<label for="fullName">Nombre Completo</label>
-						<Input id="fullName" bind:value={fullName} placeholder="Tu nombre completo">
-							{#snippet leftIcon()}
-								<UserIcon class="h-4 w-4" />
-							{/snippet}
-						</Input>
+						<Input id="fullName" bind:value={fullName} placeholder="Tu nombre completo" />
 					</div>
 
 					<div class="form-group">
@@ -144,11 +139,7 @@
 
 					<div class="form-group">
 						<label for="email">Correo Electrónico</label>
-						<Input id="email" type="email" bind:value={email} placeholder="tu@email.com">
-							{#snippet leftIcon()}
-								<MailIcon class="h-4 w-4" />
-							{/snippet}
-						</Input>
+						<Input id="email" type="email" bind:value={email} placeholder="tu@email.com" />
 					</div>
 
 					<div class="form-group">
@@ -189,17 +180,17 @@
 							type="password"
 							bind:value={currentPassword}
 							placeholder="••••••••"
-							icon={KeyIcon}
 						/>
 					</div>
 
 					<div class="form-group">
 						<label for="newPassword">Nueva Contraseña</label>
-						<Input id="newPassword" type="password" bind:value={newPassword} placeholder="••••••••">
-							{#snippet leftIcon()}
-								<KeyIcon class="h-4 w-4" />
-							{/snippet}
-						</Input>
+						<Input
+							id="newPassword"
+							type="password"
+							bind:value={newPassword}
+							placeholder="••••••••"
+						/>
 					</div>
 
 					<div class="form-group">
@@ -209,11 +200,7 @@
 							type="password"
 							bind:value={confirmPassword}
 							placeholder="••••••••"
-						>
-							{#snippet leftIcon()}
-								<KeyIcon class="h-4 w-4" />
-							{/snippet}
-						</Input>
+						/>
 					</div>
 
 					<Button

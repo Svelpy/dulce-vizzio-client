@@ -2,8 +2,9 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import CourseCard from '$lib/components/features/course/courseCard.svelte';
-	import { EnrollmentsService, CoursesService, AuthService } from '$lib/services';
-	import type { Enrollment, Course, User } from '$lib/interfaces';
+	import { EnrollmentsService, CoursesService } from '$lib/services';
+	import { currentUser } from '$lib/stores/auth.store';
+	import type { Enrollment, Course } from '$lib/interfaces';
 	import { UsersIcon, TrendingUpIcon, CashIcon, HomeDotIcon } from '$lib/icons/outline';
 	import { Button } from '$lib/components/ui';
 
@@ -11,7 +12,6 @@
 	let enrolledCourses: Course[] = $state([]);
 	let recommendedCourses: Course[] = $state([]);
 	let loading = $state(true);
-	let user: User | null = $state(null);
 
 	// Stats
 	let activeCourses = $derived(myEnrollments.filter((e) => e.status === 'ACTIVE').length);
@@ -19,15 +19,9 @@
 	let completedCourses = $derived(myEnrollments.filter((e) => e.completed_at).length);
 
 	onMount(async () => {
-		// Get user from localStorage (client-side only)
-		user = AuthService.getUser();
-
 		try {
 			// Load my enrollments
-			const enrollmentsResponse = await EnrollmentsService.getMyEnrollments({
-				status: 'ACTIVE',
-				size: 10
-			});
+			const enrollmentsResponse = await EnrollmentsService.getMyEnrollments();
 			myEnrollments = enrollmentsResponse.data;
 
 			// Load enrolled courses details
@@ -67,7 +61,7 @@
 	<div class="">
 		<h1 class="mb-2 text-3xl font-bold text-light-black">
 			¡Bienvenido de vuelta, <span class="text-light-three dark:text-dark-two">
-				{user?.full_name || 'Estudiante'}</span
+				{$currentUser?.full_name || 'Estudiante'}</span
 			>! 👋
 		</h1>
 	</div>

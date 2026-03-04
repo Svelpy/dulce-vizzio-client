@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Button } from '$lib/components/ui';
 	import { BookIcon, ClockIcon, UsersIcon } from '$lib/icons/outline';
 	import { StarIcon } from '$lib/icons/solid';
 	import type { Course } from '$lib/interfaces';
@@ -23,13 +24,27 @@
 		contentVisible = true
 	}: Props = $props();
 
-	// Format duration to hours and minutes
 	const formatDuration = (hours: number): string => {
 		const h = Math.floor(hours);
 		const m = Math.round((hours - h) * 60);
 		if (h === 0) return `${m}min`;
 		if (m === 0) return `${h}h`;
 		return `${h}h ${m}min`;
+	};
+
+	const handleCtaClick = (e: MouseEvent) => {
+		e.stopPropagation();
+		if (course.is_enrolled) {
+			onclick?.();
+		} else {
+			const message = `${course.cover_image_url} \n Hola, estoy interesado en el curso \n ${course.title}`;
+			const encodedMessage = encodeURIComponent(message);
+			const whatsappURL = `https://api.whatsapp.com/send?phone=59160984296&text=${encodedMessage}`;
+
+			window.open(whatsappURL, '_blank');
+			// const waUrl = course.whatsapp_group_url ?? 'https://wa.me/';
+			// window.open(waUrl, '_blank', 'noopener,noreferrer');
+		}
 	};
 </script>
 
@@ -45,7 +60,6 @@
 		}
 	}}
 >
-	<!-- Cover Image -->
 	<div class="bg-cream relative h-48 w-full overflow-hidden">
 		{#if course.cover_image_url}
 			<img
@@ -55,11 +69,10 @@
 			/>
 		{:else}
 			<div class="from-rose/20 to-gold/20 flex h-full w-full items-center justify-center">
-				<BookIcon class="dark:text-dark-five h-20 w-20 text-light-five" />
+				<BookIcon class="h-20 w-20 text-light-five dark:text-dark-five" />
 			</div>
 		{/if}
 
-		<!-- Difficulty Badge -->
 		{#if difficultyVisible}
 			<div class="absolute top-3 left-3">
 				<span class="rounded-full px-3 py-1 text-xs font-semibold">
@@ -77,15 +90,12 @@
 		{/if}
 	</div>
 
-	<!-- Content -->
 	{#if contentVisible}
 		<div class="h-full rounded-md p-5">
-			<!-- Category -->
 			<p class="text-taupe mb-2 text-xs font-medium tracking-wide uppercase">
 				{course.category}
 			</p>
 
-			<!-- Title -->
 			<h3
 				class="group-hover:text-rose mb-2 line-clamp-2 text-lg font-bold text-gray-900 transition-colors"
 			>
@@ -143,6 +153,11 @@
 					</div>
 				</div>
 			{/if}
+
+			<!-- CTA Button -->
+			<Button onclick={handleCtaClick} variant={'primary'} fullWidth>
+				{course.is_enrolled ? 'Ver curso' : 'Comprar'}
+			</Button>
 		</div>
 	{/if}
 </div>

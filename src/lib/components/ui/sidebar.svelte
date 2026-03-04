@@ -8,41 +8,40 @@
 		ChevronsRightIcon,
 		ChevronsLeftIcon
 	} from '$lib/icons/outline';
-	import { onMount } from 'svelte';
-	import { AuthService } from '$lib/services';
+	import { currentUser } from '$lib/stores/auth.store';
 	import { sidebarState } from '$lib/stores/sidebar.store';
+	import { canAccessPath, Role } from '$lib/constants/roles';
 
-	let user = $state<any>(null);
 	let isHovering = $state(false);
 
-	onMount(() => {
-		user = AuthService.getUser();
-	});
+	interface MenuItem {
+		label: string;
+		href: string;
+		icon: any;
+	}
 
-	const menuItems = [
+	const originalMenuItems: MenuItem[] = [
 		{ label: 'Dashboard', href: '/app/dashboard', icon: HomeDotIcon },
 		{ label: 'Cursos', href: '/app/courses', icon: BookIcon },
-		{ label: 'Mis Cursos', href: '/app/my-courses', icon: BookIcon },
-		{ label: 'Users', href: '/app/users', icon: UsersIcon },
+		{ label: 'Usuarios', href: '/app/users', icon: UsersIcon },
 		{ label: 'Mi Perfil', href: '/app/profile', icon: UserIcon }
 	];
 
-	// Admin menu items
-	const adminItems = [
-		{ label: 'Usuarios', href: '/app/users', icon: UsersIcon },
-		{ label: 'Inscripciones', href: '/app/enrollments', icon: BookIcon }
-	];
+	const originalAdminItems: MenuItem[] = [];
+	const menuItems = $derived(
+		originalMenuItems.filter((item) => canAccessPath($currentUser?.role, item.href))
+	);
+
+	const adminItems = $derived(
+		originalAdminItems.filter((item) => canAccessPath($currentUser?.role, item.href))
+	);
 
 	const isActive = (href: string) => {
 		return $page.url.pathname === href || $page.url.pathname.startsWith(href + '/');
 	};
 
-	// Check if user is admin
-	const isAdmin = () => {
-		return user?.role === 'admin' || user?.role === 'superadmin';
-	};
+	const showAdminSection = $derived(adminItems.length > 0);
 
-	// Toggle complete visibility
 	const toggleVisibility = () => {
 		if ($sidebarState === 'hidden') {
 			$sidebarState = 'icon-only';
@@ -59,12 +58,9 @@
 		}
 	};
 
-	// Handle mouse enter
 	const handleMouseEnter = () => {
 		isHovering = true;
 	};
-
-	// Handle mouse leave - auto collapse to icon-only
 	const handleMouseLeave = () => {
 		isHovering = false;
 		if ($sidebarState === 'expanded') {
@@ -72,7 +68,6 @@
 		}
 	};
 
-	// Get sidebar width based on state
 	const getSidebarWidth = () => {
 		if ($sidebarState === 'hidden') return 'w-0';
 		if ($sidebarState === 'icon-only') return 'w-16';
@@ -109,7 +104,6 @@
 			? 'px-2'
 			: 'px-3'}"
 	>
-		<!-- Main Navigation -->
 		<nav class="flex-1 space-y-2">
 			{#each menuItems as item}
 				<a
@@ -117,8 +111,8 @@
 					class="flex items-center rounded-lg px-3 py-3 text-sm font-medium text-light-one transition-all {isActive(
 						item.href
 					)
-						? 'dark:bg-dark-five bg-light-five'
-						: ' dark:hover:bg-dark-five_d hover:bg-light-five_d hover:text-light-one_d'} {$sidebarState ===
+						? 'bg-light-five dark:bg-dark-five'
+						: ' hover:bg-light-five_d hover:text-light-one_d dark:hover:bg-dark-five_d'} {$sidebarState ===
 					'icon-only'
 						? 'justify-center'
 						: 'gap-3'}"
@@ -132,7 +126,7 @@
 			{/each}
 
 			<!-- Admin Section -->
-			{#if isAdmin()}
+			{#if showAdminSection}
 				<div class="mt-6">
 					{#if $sidebarState === 'expanded'}
 						<h3 class="mb-2 px-3 text-xs font-semibold tracking-wider text-gray-400 uppercase">
@@ -148,8 +142,8 @@
 								class="flex items-center rounded-lg px-3 py-3 text-sm font-medium transition-all {isActive(
 									item.href
 								)
-									? 'dark:bg-dark-five bg-light-five'
-									: ' dark:hover:bg-dark-five_d hover:bg-light-five_d hover:text-light-one_d'} {$sidebarState ===
+									? 'bg-light-five dark:bg-dark-five'
+									: ' hover:bg-light-five_d hover:text-light-one_d dark:hover:bg-dark-five_d'} {$sidebarState ===
 								'icon-only'
 									? 'justify-center'
 									: 'gap-3'}"

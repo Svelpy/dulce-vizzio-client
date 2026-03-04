@@ -64,9 +64,9 @@ class ApiAvicor {
 				const errorBody = await response.json().catch(() => ({}));
 				const errorType = errorService.mapHttpToErrorType(response.status);
 
-				// Si es error 401, limpiar token
+				// Si es error 401, limpiar sesión completa (token + perfil)
 				if (response.status === 401) {
-					AuthService.clearToken();
+					AuthService.clearSession();
 				}
 
 				throw new AppError(

@@ -1,24 +1,24 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { onMount } from 'svelte';
-	import { AuthService } from '$lib/services';
+	import { currentUser, authStore } from '$lib/stores/auth.store';
 	import { UserIcon, BookIcon, HomeDotIcon } from '$lib/icons/outline';
+
+	import { canAccessPath } from '$lib/constants/roles';
 
 	let mobileMenuOpen = $state(false);
 	let userMenuOpen = $state(false);
 	let searchQuery = $state('');
-	let user = $state<any>(null);
 
-	onMount(() => {
-		user = AuthService.getUser();
-	});
-
-	const navLinks = [
+	const allNavLinks = [
 		{ label: 'Dashboard', href: '/app/dashboard', icon: HomeDotIcon },
 		{ label: 'Cursos', href: '/app/courses', icon: BookIcon },
 		{ label: 'Mis Cursos', href: '/app/my-courses', icon: BookIcon }
 	];
+
+	const navLinks = $derived(
+		allNavLinks.filter((link) => canAccessPath($currentUser?.role, link.href))
+	);
 
 	const handleSearch = (e: Event) => {
 		e.preventDefault();
@@ -28,8 +28,8 @@
 		}
 	};
 
-	const handleLogout = () => {
-		AuthService.logout();
+	const handleLogout = async () => {
+		await authStore.logout();
 		goto('/auth/sign-in');
 	};
 
@@ -54,6 +54,7 @@
 		}
 	};
 
+	import { onMount } from 'svelte';
 	onMount(() => {
 		document.addEventListener('click', handleClickOutside);
 		return () => {
@@ -114,7 +115,7 @@
 
 			<!-- Right Side: User Menu -->
 			<div class="flex items-center gap-4">
-				{#if user}
+				{#if $currentUser}
 					<div class="user-menu-container relative hidden md:block">
 						<button
 							onclick={toggleUserMenu}
@@ -265,7 +266,7 @@
 					</a>
 				{/each}
 
-				{#if user}
+				{#if $currentUser}
 					<hr class="my-2 border-gray-800" />
 					<a
 						href="/app/profile"
