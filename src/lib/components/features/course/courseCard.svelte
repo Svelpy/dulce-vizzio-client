@@ -37,9 +37,9 @@
 		if (course.is_enrolled) {
 			onclick?.();
 		} else {
-			const message = `${course.cover_image_url} \n Hola, estoy interesado en el curso \n ${course.title}`;
+			const message = `Hola, estoy interesado en el curso \n ${course.title}`;
 			const encodedMessage = encodeURIComponent(message);
-			const whatsappURL = `https://api.whatsapp.com/send?phone=59160984296&text=${encodedMessage}`;
+			const whatsappURL = `https://api.whatsapp.com/send?phone=59175618048&text=${encodedMessage}`;
 
 			window.open(whatsappURL, '_blank');
 			// const waUrl = course.whatsapp_group_url ?? 'https://wa.me/';
