@@ -16,6 +16,7 @@ export class EnrollmentsService {
 		const params = new URLSearchParams();
 
 		if (filters.status) params.append('status', filters.status);
+		if (filters.search) params.append('search', filters.search);
 		if (filters.page) params.append('page', filters.page.toString());
 		if (filters.size) params.append('size', filters.size.toString());
 
@@ -34,6 +35,7 @@ export class EnrollmentsService {
 		if (filters.user_id) params.append('user_id', filters.user_id);
 		if (filters.course_id) params.append('course_id', filters.course_id);
 		if (filters.status) params.append('status', filters.status);
+		if (filters.search) params.append('search', filters.search);
 		if (filters.page) params.append('page', filters.page.toString());
 		if (filters.size) params.append('size', filters.size.toString());
 

@@ -1,32 +1,52 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
 	import CourseCard from '$lib/components/features/course/courseCard.svelte';
 	import { Input, Select, Pagination, Button } from '$lib/components/ui';
 	import { CoursesService } from '$lib/services';
-	import type { Course, CourseFilters } from '$lib/interfaces';
-	import { ZoomIcon, FiltersIcon } from '$lib/icons/outline';
+	import { authStore } from '$lib/stores';
+	import { Role } from '$lib/constants/roles';
+	import { COURSE_CATEGORIES, COURSE_DIFFICULTIES } from '$lib/data';
+	import CreateEnrollmentModal from '$lib/components/features/enrollments/CreateEnrollmentModal.svelte';
+	import type { Course, CourseDifficulty, CourseFilters } from '$lib/interfaces';
+	import { debounce, redirect } from '$lib/utils';
+	import { FiltersIcon, PlusIcon, BookIcon } from '$lib/icons/outline';
+	import { CreateCourseModal, CreateLessonModal } from '$lib/components/features/course';
 
 	let courses: Course[] = $state([]);
 	let loading = $state(true);
 	let totalCourses = $state(0);
 	let totalPages = $state(2000);
+	let isModalOpen = $state(false);
+	let isCreateCourseModalOpen = $state(false);
+	let isCreateLessonModalOpen = $state(false);
+	let selectedCourse = $state<Course | null>(null);
+
+	function openEnrollmentModal(course: Course) {
+		selectedCourse = course;
+		isModalOpen = true;
+	}
+
+	function openCreateCourseModal() {
+		isCreateCourseModalOpen = true;
+	}
+
+	function openCreateLessonModal(course: Course) {
+		selectedCourse = course;
+		isCreateLessonModalOpen = true;
+	}
 
 	// Filters — only sent when user explicitly picks a value
-	let searchQuery = $state('');
-	let selectedCategory = $state('');
-	let selectedDifficulty = $state('');
-	let currentPage = $state(1);
-	let perPage = $state(12);
+	let searchQuery: string = $state('');
+	let selectedCategory: string = $state('');
+	let selectedDifficulty: CourseDifficulty = $state('');
+	let currentPage: number = $state(1);
+	let perPage: number = $state(12);
 
-	// Categories (you might want to fetch these from API)
-	const categories = ['Pasteles', 'Macarons', 'Chocolatería', 'Panes', 'Decoración', 'Postres'];
+	const categories = COURSE_CATEGORIES;
 
-	const difficulties = [
+	const difficulties: { value: CourseDifficulty | ''; label: string }[] = [
 		{ value: '', label: 'Todas las dificultades' },
-		{ value: 'BEGINNER', label: 'Principiante' },
-		{ value: 'INTERMEDIATE', label: 'Intermedio' },
-		{ value: 'ADVANCED', label: 'Avanzado' }
+		...COURSE_DIFFICULTIES
 	];
 
 	onMount(() => {
@@ -43,7 +63,7 @@
 
 			if (searchQuery) filters.search = searchQuery;
 			if (selectedCategory) filters.category = selectedCategory;
-			if (selectedDifficulty) filters.difficulty = selectedDifficulty as any;
+			if (selectedDifficulty) filters.difficulty = selectedDifficulty;
 
 			const response = await CoursesService.getAll(filters);
 			courses = response.data;
@@ -57,6 +77,15 @@
 		}
 	};
 
+	const debouncedSearch = debounce(() => {
+		currentPage = 1;
+		loadCourses();
+	}, 300);
+
+	const handleSearchInput = () => {
+		debouncedSearch();
+	};
+
 	const handleSearch = () => {
 		currentPage = 1;
 		loadCourses();
@@ -68,7 +97,7 @@
 		loadCourses();
 	};
 
-	const handleDifficultyChange = (difficulty: string) => {
+	const handleDifficultyChange = (difficulty: CourseDifficulty | '') => {
 		selectedDifficulty = difficulty;
 		currentPage = 1;
 		loadCourses();
@@ -88,7 +117,7 @@
 	};
 
 	const handleCourseClick = (slug: string) => {
-		goto(`/app/courses/${slug}`);
+		redirect(`/app/courses/${slug}`);
 	};
 </script>
 
@@ -104,6 +133,7 @@
 				<Input
 					bind:value={searchQuery}
 					placeholder="Buscar cursos..."
+					oninput={handleSearchInput}
 					onkeydown={(e) => {
 						if (e.key === 'Enter') handleSearch();
 					}}
@@ -116,7 +146,7 @@
 					onchange={() => handleCategoryChange(selectedCategory)}
 				>
 					<option value="">Todas las categorías</option>
-					{#each categories as category}
+					{#each categories as category, index (index)}
 						<option value={category}>{category}</option>
 					{/each}
 				</Select>
@@ -127,7 +157,7 @@
 					bind:value={selectedDifficulty}
 					onchange={() => handleDifficultyChange(selectedDifficulty)}
 				>
-					{#each difficulties as difficulty}
+					{#each difficulties as difficulty, index (index)}
 						<option value={difficulty.value}>{difficulty.label}</option>
 					{/each}
 				</Select>
@@ -135,7 +165,6 @@
 		</div>
 
 		<div class="mt-4 flex gap-3">
-			<Button variant="primary" onclick={handleSearch}>Buscar</Button>
 			<Button variant="outline" onclick={handleResetFilters}>Limpiar Filtros</Button>
 		</div>
 	</div>
@@ -146,6 +175,17 @@
 			Mostrando <span class="font-semibold text-gray-900">{courses.length}</span> de
 			<span class="font-semibold text-gray-900">{totalCourses}</span> cursos
 		</p>
+
+		{#if $authStore.user?.role === Role.SUPERADMIN || $authStore.user?.role === Role.ADMIN}
+			<Button
+				variant="primary"
+				class="bg-stone-900 px-6 font-bold text-white hover:bg-stone-800"
+				onclick={openCreateCourseModal}
+			>
+				<PlusIcon class="mr-2 size-5" />
+				Agregar Curso
+			</Button>
+		{/if}
 	</div>
 
 	<!-- Courses Grid -->
@@ -158,9 +198,77 @@
 	{:else if courses.length > 0}
 		<div class="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
 			{#each courses as course (course.id)}
-				<CourseCard {course} onclick={() => handleCourseClick(course.slug)} />
+				<div class="flex flex-col gap-2">
+					<CourseCard {course} onclick={() => handleCourseClick(course.slug)} />
+					{#if $authStore.user?.role === Role.SUPERADMIN || $authStore.user?.role === Role.ADMIN}
+						<div class="flex gap-2">
+							<Button
+								variant="outline"
+								class="flex-1 border-stone-200 text-stone-600 hover:border-rose-300 hover:bg-stone-50"
+								onclick={(e) => {
+									e.stopPropagation();
+									openEnrollmentModal(course);
+								}}
+							>
+								Inscribir
+							</Button>
+							<Button
+								variant="outline"
+								class="flex-1 border-stone-200 text-stone-600 hover:border-blue-300 hover:bg-stone-50"
+								onclick={(e) => {
+									e.stopPropagation();
+									openCreateLessonModal(course);
+								}}
+							>
+								<BookIcon class="mr-1 size-4" />
+								Lección
+							</Button>
+						</div>
+					{/if}
+				</div>
 			{/each}
 		</div>
+
+		<CreateEnrollmentModal
+			isOpen={isModalOpen}
+			initialCourse={selectedCourse}
+			onClose={() => {
+				isModalOpen = false;
+				selectedCourse = null;
+			}}
+			onSuccess={() => {
+				isModalOpen = false;
+				selectedCourse = null;
+				loadCourses();
+			}}
+		/>
+
+		<CreateCourseModal
+			isOpen={isCreateCourseModalOpen}
+			onClose={() => {
+				isCreateCourseModalOpen = false;
+			}}
+			onSuccess={() => {
+				isCreateCourseModalOpen = false;
+				loadCourses();
+			}}
+		/>
+
+		{#if selectedCourse}
+			<CreateLessonModal
+				isOpen={isCreateLessonModalOpen}
+				courseId={selectedCourse.id}
+				onClose={() => {
+					isCreateLessonModalOpen = false;
+					selectedCourse = null;
+				}}
+				onSuccess={() => {
+					isCreateLessonModalOpen = false;
+					selectedCourse = null;
+					loadCourses();
+				}}
+			/>
+		{/if}
 
 		<!-- Pagination -->
 		{#if totalPages > 1}

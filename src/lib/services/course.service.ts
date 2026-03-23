@@ -1,5 +1,15 @@
 import { apiAvicor } from '$lib/config/apiDulceVizzio.config';
-import type { CourseDetail, CourseFilters, CourseListResponse, Lesson } from '$lib/interfaces';
+import type {
+	Course,
+	CourseDetail,
+	CourseFilters,
+	CourseListResponse,
+	Lesson,
+	CreateCourseRequest,
+	CourseMaterial,
+	CreateLessonRequest,
+	UpdateLessonRequest
+} from '$lib/interfaces';
 const BASE_PATH = '/courses';
 export class CoursesService {
 	//	static BASE_PATH = '/courses';
@@ -20,6 +30,18 @@ export class CoursesService {
 		return apiAvicor.get<CourseListResponse>(endpoint);
 	}
 
+	static async create(data: CreateCourseRequest): Promise<Course> {
+		return apiAvicor.post<Course>(BASE_PATH, data);
+	}
+
+	static async createLesson(courseId: string, data: CreateLessonRequest): Promise<Lesson> {
+		return apiAvicor.post<Lesson>(`${BASE_PATH}/${courseId}/lessons`, data);
+	}
+
+	static async updateLesson(lessonId: string, data: UpdateLessonRequest): Promise<Lesson> {
+		return apiAvicor.put<Lesson>(`/lessons/${lessonId}`, data);
+	}
+
 	async getCourseBySlug(slug: string): Promise<CourseDetail> {
 		return apiAvicor.get<CourseDetail>(`${BASE_PATH}/${slug}`);
 	}
@@ -30,6 +52,10 @@ export class CoursesService {
 
 	static async getLessonById(lessonId: string): Promise<Lesson> {
 		return apiAvicor.get<Lesson>(`/lessons/${lessonId}`);
+	}
+
+	async uploadMaterial(lessonId: string, data: FormData): Promise<CourseMaterial> {
+		return apiAvicor.post<CourseMaterial>(`/lessons/${lessonId}/materials`, data);
 	}
 }
 

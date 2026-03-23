@@ -44,11 +44,19 @@ class ApiAvicor {
 
 		try {
 			const headers = this.buildHeaders(options);
+			const isFormData = data instanceof FormData;
+
+			// Si el cuerpo es FormData, eliminamos el Content-Type para que el navegador
+			// lo establezca automáticamente con el boundary correcto.
+			if (isFormData) {
+				const headersObj = headers as Record<string, string>;
+				delete headersObj['Content-Type'];
+			}
 
 			const response = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`, {
 				method,
 				headers,
-				body: data ? JSON.stringify(data) : undefined,
+				body: isFormData ? (data as FormData) : data ? JSON.stringify(data) : undefined,
 				signal: controller.signal
 			});
 

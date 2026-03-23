@@ -1,8 +1,11 @@
 export interface CourseMaterial {
-	id: string;
 	title: string;
-	url: string;
-	type: string;
+	resource_url: string;
+	file_format: string;
+	is_downloadable: boolean;
+	order: number;
+	created_at: string;
+	created_by?: string;
 }
 
 export interface CourseLesson {

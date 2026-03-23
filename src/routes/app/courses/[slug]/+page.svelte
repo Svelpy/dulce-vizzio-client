@@ -4,15 +4,32 @@
 	import { Button } from '$lib/components/ui';
 	import type { CourseDetail, CourseLesson } from '$lib/interfaces';
 	import { courseService } from '$lib/services';
-	import { ClockIcon, EyeOffIcon, PlayerPlayIcon, UsersIcon } from '$lib/icons/outline';
+	import {
+		ClockIcon,
+		EyeOffIcon,
+		PlayerPlayIcon,
+		UsersIcon,
+		DownloadIcon,
+		PhotoIcon,
+		ClipboardIcon,
+		PlusIcon
+	} from '$lib/icons/outline';
 	import { BookIcon, FileDescriptionIcon, HomeIcon, LockIcon } from '$lib/icons/solid';
+	import { currentUser } from '$lib/stores/auth.store';
+	import { Role } from '$lib/constants/roles';
+	import { MaterialUploadModal, CreateLessonModal } from '$lib/components/features/course';
 
 	let course = $state<CourseDetail | null>(null);
 	let currentLesson = $state<CourseLesson | null>(null);
 	let loading = $state(true);
 	let error = $state('');
+	let isUploadModalOpen = $state(false);
+	let isCreateLessonModalOpen = $state(false);
 
 	const slug = $derived($page.params.slug);
+	const isAdmin = $derived(
+		$currentUser?.role === Role.ADMIN || $currentUser?.role === Role.SUPERADMIN
+	);
 
 	const difficultyLabels = {
 		BEGINNER: 'Principiante',
@@ -37,6 +54,7 @@
 			loading = true;
 			error = '';
 			course = await courseService.getCourseBySlug(slug);
+			console.log(course);
 
 			// Auto-select first available lesson
 			if (course && course.lessons.length > 0) {
@@ -78,6 +96,43 @@
 		return m > 0 ? `${h}h ${m}m` : `${h}h`;
 	}
 
+	function getMaterialConfig(format: string = '') {
+		const f = format.toLowerCase();
+		if (f === 'pdf') {
+			return { icon: FileDescriptionIcon, color: 'text-red-500', bgColor: 'bg-red-50' };
+		}
+		if (['doc', 'docx'].includes(f)) {
+			return { icon: ClipboardIcon, color: 'text-blue-500', bgColor: 'bg-blue-50' };
+		}
+		if (['jpg', 'jpeg', 'png', 'gif'].includes(f)) {
+			return { icon: PhotoIcon, color: 'text-purple-500', bgColor: 'bg-purple-50' };
+		}
+		return { icon: FileDescriptionIcon, color: 'text-slate-500', bgColor: 'bg-slate-50' };
+	}
+
+	async function downloadResource(url: string, filename: string, format: string) {
+		try {
+			const response = await fetch(url);
+			const blob = await response.blob();
+			const blobUrl = window.URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = blobUrl;
+			// Ensure filename has the correct extension if not already present
+			const fullFilename =
+				filename.toLowerCase().endsWith(`.${format.toLowerCase()}`) || !format
+					? filename
+					: `${filename}.${format}`;
+			a.download = fullFilename;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			window.URL.revokeObjectURL(blobUrl);
+		} catch (err) {
+			console.error('Download failed:', err);
+			window.open(url, '_blank');
+		}
+	}
+
 	onMount(() => {
 		loadCourse();
 	});
@@ -105,7 +160,7 @@
 					</div>
 				</div>
 				<div class="space-y-3">
-					{#each Array(5) as _}
+					{#each Array(5)}
 						<div class="h-24 w-full animate-pulse rounded-lg bg-slate-200"></div>
 					{/each}
 				</div>
@@ -150,7 +205,7 @@
 			<h1 class="text-xl font-bold text-slate-900">{course.title}</h1>
 		</div>
 
-		<div class="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+		<div class="">
 			<div class="grid gap-6 lg:grid-cols-3">
 				<!-- Video Player & Content Area (Left - 2/3) -->
 				<div class="space-y-6 lg:col-span-2">
@@ -199,28 +254,72 @@
 							<h2 class="mb-2 text-2xl font-bold text-slate-900">{currentLesson.title}</h2>
 							<p class="mb-4 text-slate-600">{currentLesson.summary}</p>
 
-							{#if currentLesson.materials.length > 0}
-								<div class="border-t border-slate-200 pt-4">
-									<h3 class="mb-3 flex items-center gap-2 font-semibold text-slate-900">
-										<FileDescriptionIcon class="h-5 w-5" />
-										Materiales de descarga
-									</h3>
-									<div class="space-y-2">
-										{#each currentLesson.materials as material}
-											<a
-												href={material.url}
-												target="_blank"
-												rel="noopener noreferrer"
-												class="flex items-center justify-between rounded-lg border border-slate-200 p-3 transition-colors hover:border-blue-500 hover:bg-blue-50"
-											>
-												<span class="font-medium text-slate-900">{material.title}</span>
-												<span
-													class="rounded bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600"
-													>{material.type}</span
+							{#if currentLesson.materials.length > 0 || isAdmin}
+								<div class="border-t border-slate-200 pt-6">
+									<div class="mb-4 flex items-center justify-between">
+										<h3 class="flex items-center gap-2 text-lg font-bold text-slate-900">
+											<FileDescriptionIcon class="h-6 w-6 text-light-four" />
+											Materiales de la lección
+										</h3>
+										<div class="flex gap-2">
+											{#if isAdmin}
+												<Button
+													variant="ghost"
+													size="sm"
+													onclick={() => (isUploadModalOpen = true)}
+													class="text-light-four hover:bg-light-four/10"
 												>
-											</a>
-										{/each}
+													{#snippet leftIcon()}
+														<PlusIcon class="h-4 w-4" />
+													{/snippet}
+													Material
+												</Button>
+											{/if}
+										</div>
 									</div>
+									{#if currentLesson.materials.length > 0}
+										<div class="grid gap-3 sm:grid-cols-2">
+											{#each currentLesson.materials as material, index (index)}
+												{@const config = getMaterialConfig(material.file_format)}
+												<button
+													onclick={() =>
+														downloadResource(
+															material.resource_url,
+															material.title,
+															material.file_format
+														)}
+													class="group flex items-center gap-4 rounded-xl border border-slate-200 p-4 text-left transition-all hover:border-light-four hover:bg-slate-50 hover:shadow-sm"
+												>
+													<div
+														class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg {config.bgColor} {config.color} transition-transform group-hover:scale-110"
+													>
+														<config.icon class="h-7 w-7" />
+													</div>
+													<div class="min-w-0 flex-1">
+														<div class="mb-1 flex items-center justify-between gap-2">
+															<span
+																class="truncate font-semibold text-slate-900"
+																title={material.title}
+															>
+																{material.title}
+															</span>
+														</div>
+														<div class="flex items-center gap-3 text-xs text-slate-500">
+															<span class="font-bold uppercase"
+																>{material.file_format || 'Archivo'}</span
+															>
+															{#if material.is_downloadable}
+																<span class="flex items-center gap-1 font-medium text-light-four">
+																	<DownloadIcon class="h-3 w-3" />
+																	Descargar
+																</span>
+															{/if}
+														</div>
+													</div>
+												</button>
+											{/each}
+										</div>
+									{/if}
 								</div>
 							{/if}
 						</div>
@@ -232,7 +331,7 @@
 						<p class="mb-4 leading-relaxed text-slate-700">{course.description}</p>
 
 						<div class="flex flex-wrap gap-2">
-							{#each course.tags as tag}
+							{#each course.tags as tag, index (index)}
 								<span
 									class="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700"
 								>
@@ -282,7 +381,22 @@
 				<div class="lg:col-span-1">
 					<div class="sticky top-6 rounded-xl bg-white shadow-sm">
 						<div class="border-b border-slate-200 p-4">
-							<h3 class="font-bold text-slate-900">Contenido del curso</h3>
+							<div class="mb-2 flex items-center justify-between">
+								<h3 class="font-bold text-slate-900">Contenido del curso</h3>
+								{#if isAdmin}
+									<Button
+										variant="ghost"
+										size="sm"
+										onclick={() => (isCreateLessonModalOpen = true)}
+										class="text-light-four hover:bg-light-four/10"
+									>
+										{#snippet leftIcon()}
+											<PlusIcon class="h-4 w-4" />
+										{/snippet}
+										Lección
+									</Button>
+								{/if}
+							</div>
 							<p class="text-sm text-slate-600">
 								{course.lessons.length} lecciones • {formatTotalDuration(
 									course.total_duration_hours
@@ -291,7 +405,7 @@
 						</div>
 
 						<div class="max-h-[calc(100vh-200px)] overflow-y-auto">
-							{#each course.lessons as lesson, index (lesson.id)}
+							{#each course.lessons as lesson (lesson.id)}
 								{@const canAccess = lesson.is_preview || course.is_enrolled}
 								{@const isActive = currentLesson?.id === lesson.id}
 
@@ -370,4 +484,27 @@
 			</div>
 		</div>
 	</div>
+{/if}
+
+{#if course && currentLesson && isAdmin}
+	<MaterialUploadModal
+		isOpen={isUploadModalOpen}
+		lessonId={currentLesson.id}
+		onClose={() => (isUploadModalOpen = false)}
+		onSuccess={() => {
+			loadCourse(); // Reload to get updated materials
+		}}
+	/>
+{/if}
+
+{#if course && isAdmin}
+	<CreateLessonModal
+		isOpen={isCreateLessonModalOpen}
+		courseId={course.id}
+		onClose={() => (isCreateLessonModalOpen = false)}
+		onSuccess={() => {
+			isCreateLessonModalOpen = false;
+			loadCourse(); // Reload to get updated lessons
+		}}
+	/>
 {/if}

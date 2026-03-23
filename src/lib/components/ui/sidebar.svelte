@@ -22,7 +22,9 @@
 
 	const originalMenuItems: MenuItem[] = [
 		{ label: 'Dashboard', href: '/app/dashboard', icon: HomeDotIcon },
+		{ label: 'Mis Cursos', href: '/app/my-enrollments', icon: BookIcon },
 		{ label: 'Cursos', href: '/app/courses', icon: BookIcon },
+		{ label: 'Inscripciones', href: '/app/enrollments', icon: BookIcon },
 		{ label: 'Usuarios', href: '/app/users', icon: UsersIcon },
 		{ label: 'Mi Perfil', href: '/app/profile', icon: UserIcon }
 	];
@@ -105,7 +107,7 @@
 			: 'px-3'}"
 	>
 		<nav class="flex-1 space-y-2">
-			{#each menuItems as item}
+			{#each menuItems as item, index (index)}
 				<a
 					href={item.href}
 					class="flex items-center rounded-lg px-3 py-3 text-sm font-medium text-light-one transition-all {isActive(

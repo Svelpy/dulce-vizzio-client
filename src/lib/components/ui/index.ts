@@ -22,3 +22,5 @@ export { default as Select } from './select.svelte';
 export { default as TextArea } from './textArea.svelte';
 export { default as Navbar } from './navbar.svelte';
 export { default as ErrorState } from './errorState.svelte';
+export { default as Loader } from './loader.svelte';
+export { default as Skeleton } from './skeleton.svelte';

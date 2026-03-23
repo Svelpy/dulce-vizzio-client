@@ -5,7 +5,6 @@
 	import { EnrollmentsService, CoursesService } from '$lib/services';
 	import { currentUser } from '$lib/stores/auth.store';
 	import type { Enrollment, Course } from '$lib/interfaces';
-	import { UsersIcon, TrendingUpIcon, CashIcon, HomeDotIcon } from '$lib/icons/outline';
 	import { Button } from '$lib/components/ui';
 
 	let myEnrollments: Enrollment[] = $state([]);
@@ -14,22 +13,19 @@
 	let loading = $state(true);
 
 	// Stats
-	let activeCourses = $derived(myEnrollments.filter((e) => e.status === 'ACTIVE').length);
-	let totalHours = $derived(enrolledCourses.reduce((sum, c) => sum + c.total_duration_hours, 0));
-	let completedCourses = $derived(myEnrollments.filter((e) => e.completed_at).length);
+	// let activeCourses = $derived(myEnrollments.filter((e) => e.status === 'ACTIVE').length);
+	// let totalHours = $derived(enrolledCourses.reduce((sum, c) => sum + c.total_duration_hours, 0));
+	// let completedCourses = $derived(myEnrollments.filter((e) => e.completed_at).length);
 
 	onMount(async () => {
 		try {
 			// Load my enrollments
 			const enrollmentsResponse = await EnrollmentsService.getMyEnrollments();
 			myEnrollments = enrollmentsResponse.data;
+			console.log(myEnrollments);
 
-			// Load enrolled courses details
-			// const coursePromises = myEnrollments.map((enrollment) =>
-			// 	courseService.getCourseBySlug(enrollment.course_id).catch(() => null)
-			// );
-			// const courses = await Promise.all(coursePromises);
-			// enrolledCourses = courses.filter((c): c is Course => c !== null);
+			// Derive enrolled courses from enrollments
+			enrolledCourses = myEnrollments.map((e) => e.course).filter((c): c is Course => !!c);
 
 			// Load recommended courses
 			const recommendedResponse = await CoursesService.getAll({ limit: 3, status: 'PUBLISHED' });
@@ -66,38 +62,27 @@
 		</h1>
 	</div>
 
-	<!-- <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-		<StatsCard title="Cursos Activos" value={activeCourses} color="rose">
-			{#snippet icon()}
-				<HomeDotIcon class="h-6 w-6" />
-			{/snippet}
-		</StatsCard>
-
-		<StatsCard title="Horas de Contenido" value={totalHours.toFixed(1)} color="gold">
-			{#snippet icon()}
-				<TrendingUpIcon class="h-6 w-6" />
-			{/snippet}
-		</StatsCard>
-
-		<StatsCard title="Cursos Completados" value={completedCourses} color="green">
-			{#snippet icon()}
-				<CashIcon class="h-6 w-6" />
-			{/snippet}
-		</StatsCard>
-
-		<StatsCard title="Certificados" value={completedCourses} color="taupe">
-			{#snippet icon()}
-				<UsersIcon class="h-6 w-6" />
-			{/snippet}
-		</StatsCard>
-	</div> -->
-
 	<!-- Continue Learning -->
 	{#if loading}
 		<div class="flex justify-center py-12">
 			<div
 				class="border-rose h-12 w-12 animate-spin rounded-full border-4 border-t-transparent"
 			></div>
+		</div>
+	{:else if enrolledCourses.length > 0}
+		<div>
+			<h2 class="mb-6 text-2xl font-bold text-light-black">Mis Cursos</h2>
+			<div class="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-6">
+				{#each enrolledCourses as course (course.id)}
+					{@const enrollment = myEnrollments.find((e) => e.course_id === course.id)}
+					<CourseCard
+						{course}
+						showProgress={true}
+						progress={enrollment ? calculateProgress(enrollment, course) : 0}
+						onclick={() => handleCourseClick(course.id)}
+					/>
+				{/each}
+			</div>
 		</div>
 	{:else}
 		<div class="rounded-xl p-12 text-center">

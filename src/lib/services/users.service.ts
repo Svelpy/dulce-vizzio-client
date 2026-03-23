@@ -27,3 +27,5 @@ export class UsersService {
 		return apiAvicor.get<UsersListResponse>(endpoint);
 	}
 }
+
+export const usersService = new UsersService();

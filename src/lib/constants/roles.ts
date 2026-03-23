@@ -6,28 +6,40 @@ export enum Role {
 }
 
 /**
+ * Explicit route permissions mapping.
+ * Only roles listed for a path (or its parent) can access it.
+ */
+const routePermissions: Record<string, Role[]> = {
+	'/app/dashboard': [Role.SUPERADMIN, Role.ADMIN, Role.MODERATOR, Role.USER],
+	'/app/profile': [Role.SUPERADMIN, Role.ADMIN, Role.MODERATOR, Role.USER],
+	'/app/courses': [Role.SUPERADMIN, Role.ADMIN, Role.MODERATOR, Role.USER],
+	'/app/users': [Role.SUPERADMIN, Role.ADMIN],
+	'/app/enrollments': [Role.SUPERADMIN, Role.ADMIN],
+	'/app/my-enrollments': [Role.MODERATOR, Role.USER],
+	'/app/my-courses': [Role.MODERATOR, Role.USER]
+};
+
+/**
  * Centrally managed role-based access control.
- * Scalable for new roles and new paths (just update the arrays).
+ * Verifies if a user role has permission to access a specific path.
  */
 export const canAccessPath = (userRole: string | undefined, path: string): boolean => {
 	if (!userRole) return false;
 
-	// Normalizamos a MAYÚSCULAS para que sea insensible a la fuente (DB o API)
-	const role = userRole.toUpperCase();
+	// Normalize role
+	const role = userRole.toUpperCase() as Role;
 
-	// 1. Roles con ACCESO TOTAL a /app (Escalable: añade nuevos roles de gestión aquí)
-	const fullAccessRoles: string[] = [Role.SUPERADMIN, Role.ADMIN];
-	if (fullAccessRoles.includes(role) && path.startsWith('/app')) {
-		return true;
+	// Find the matching route permission
+	// We check for exact match or if the path starts with the route prefix
+	// We sort keys by length descending to match the most specific route first
+	const sortedRoutes = Object.keys(routePermissions).sort((a, b) => b.length - a.length);
+
+	for (const route of sortedRoutes) {
+		if (path === route || path.startsWith(route + '/')) {
+			return routePermissions[route].includes(role);
+		}
 	}
 
-	// 2. Permisos para roles RESTRINGIDOS (Escalable: añade nuevas rutas permitidas aquí)
-	// Como pediste: MODERATOR y USER solo ven dashboard y courses (+ su perfil)
-	const restrictedPaths = ['/app/dashboard', '/app/courses', '/app/profile', '/app/my-courses'];
-
-	if (role === Role.MODERATOR || role === Role.USER) {
-		return restrictedPaths.some((allowed) => path.startsWith(allowed));
-	}
-
+	// Default: if no route matches or role not in list, deny access
 	return false;
 };

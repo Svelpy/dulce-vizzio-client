@@ -16,15 +16,31 @@ export interface Enrollment extends BaseDocument {
 	completed_at?: string;
 	certificate_url?: string;
 	notes?: string;
+	course?: {
+		id: string;
+		title: string;
+		slug: string;
+		price: number;
+		currency: string;
+		cover_image_url: string;
+	};
+	user?: {
+		id: string;
+		username: string;
+		full_name: string;
+		role: string;
+		is_active: boolean;
+	};
 }
 
 // Filters for enrollment listing
 export interface EnrollmentFilters {
-	status?: EnrollmentStatus;
+	status?: EnrollmentStatus | null;
 	page?: number;
 	size?: number;
 	user_id?: string;
 	course_id?: string;
+	search?: string;
 }
 
 // Paginated enrollment response

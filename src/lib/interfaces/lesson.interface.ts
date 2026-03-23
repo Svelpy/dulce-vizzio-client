@@ -23,3 +23,14 @@ export interface Lesson extends BaseDocument {
 	video_id?: string;
 	materials: LessonMaterial[];
 }
+
+export interface CreateLessonRequest {
+	title: string;
+	summary?: string;
+	duration_seconds: number;
+	is_preview: boolean;
+	video_url?: string;
+	video_id?: string;
+}
+
+export type UpdateLessonRequest = CreateLessonRequest;

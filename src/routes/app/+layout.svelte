@@ -14,7 +14,7 @@
 	<Navbar />
 	<Sidebar />
 
-	<main class="mx-auto p-4 pt-20 transition-all duration-300 {mainMargin}">
+	<main class="mx-auto mt-16 p-4 transition-all duration-300 md:p-8 {mainMargin}">
 		{@render children?.()}
 	</main>
 </div>

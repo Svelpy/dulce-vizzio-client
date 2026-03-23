@@ -1,7 +1,7 @@
 import type { BaseDocument } from './base.interface';
 
 // Course difficulty levels
-export type CourseDifficulty = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT';
+export type CourseDifficulty = '' | 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
 
 // Course lifecycle status
 export type CourseStatus = 'DRAFT' | 'REVIEW' | 'PUBLISHED' | 'ARCHIVED' | 'RETIRED';
@@ -26,6 +26,18 @@ export interface Course extends BaseDocument {
 	lessons_count: number;
 	total_duration_hours: number;
 	is_enrolled: boolean;
+}
+
+export interface CreateCourseRequest {
+	title: string;
+	description: string;
+	category: string;
+	subcategory?: string;
+	difficulty: CourseDifficulty;
+	tags: string[];
+	price: number;
+	currency: string;
+	whatsapp_group_url?: string;
 }
 
 // Filters for course listing
