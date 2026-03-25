@@ -1,5 +1,12 @@
 import { apiAvicor } from '$lib/config/apiDulceVizzio.config';
-import type { UsersFilters, UsersListResponse } from '$lib/interfaces';
+import type {
+	CreateUserRequest,
+	UpdateUserRequest,
+	User,
+	UsersFilters,
+	UsersListResponse,
+	UserRole
+} from '$lib/interfaces';
 
 export class UsersService {
 	private static readonly BASE_PATH = '/users';
@@ -25,6 +32,41 @@ export class UsersService {
 		const endpoint = queryString ? `${this.BASE_PATH}?${queryString}` : this.BASE_PATH;
 
 		return apiAvicor.get<UsersListResponse>(endpoint);
+	}
+
+	/**
+	 * Crea un nuevo usuario
+	 */
+	static async create(request: CreateUserRequest): Promise<User> {
+		return apiAvicor.post<User>(this.BASE_PATH, request);
+	}
+
+	/**
+	 * Actualiza un usuario existente
+	 */
+	static async update(id: string, request: UpdateUserRequest): Promise<User> {
+		return apiAvicor.patch<User>(`${this.BASE_PATH}/${id}`, request);
+	}
+
+	/**
+	 * Elimina un usuario (Físico o Lógico según el rol del que lo solicita)
+	 */
+	static async delete(id: string): Promise<void> {
+		return apiAvicor.delete<void>(`${this.BASE_PATH}/${id}`);
+	}
+
+	/**
+	 * Restablece la contraseña de un usuario (ADMIN o SUPERADMIN)
+	 */
+	static async resetPassword(id: string, password: string): Promise<void> {
+		return apiAvicor.patch<void>(`${this.BASE_PATH}/${id}/password`, { password });
+	}
+
+	/**
+	 * Cambia el rol de un usuario (SOLO SUPERADMIN)
+	 */
+	static async updateRole(id: string, new_role: UserRole): Promise<{ new_role: UserRole }> {
+		return apiAvicor.patch<{ new_role: UserRole }>(`${this.BASE_PATH}/${id}/role`, { new_role });
 	}
 }
 

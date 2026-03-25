@@ -1,20 +1,72 @@
 <script lang="ts">
-	import type { User } from '$lib/interfaces';
+	import type { User, DropdownOption } from '$lib/interfaces';
 	import {
 		Table,
 		TableHeader,
 		TableRow,
 		TableHead,
 		TableBody,
-		TableCell
+		TableCell,
+		DropdownMenu
 	} from '$lib/components/ui';
 
 	interface Props {
 		users: User[];
 		onAction?: (user: User) => void;
+		onDelete?: (user: User) => void;
+		onResetPassword?: (user: User) => void;
+		onUpdateRole?: (user: User) => void;
 	}
 
-	let { users, onAction }: Props = $props();
+	let { users, onAction, onDelete, onResetPassword, onUpdateRole }: Props = $props();
+
+	// State to track which menu is open
+	let openMenuId = $state<string | null>(null);
+
+	function toggleMenu(id: string) {
+		openMenuId = openMenuId === id ? null : id;
+	}
+
+	function getMenuOptions(user: User): DropdownOption[] {
+		return [
+			{
+				id: 'edit',
+				label: 'Editar',
+				icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
+				action: () => {
+					onAction?.(user);
+					openMenuId = null;
+				}
+			},
+			{
+				id: 'delete',
+				label: 'Eliminar',
+				icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`,
+				action: () => {
+					onDelete?.(user);
+					openMenuId = null;
+				}
+			},
+			{
+				id: 'reset-password',
+				label: 'Restablecer Contraseña',
+				icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`,
+				action: () => {
+					onResetPassword?.(user);
+					openMenuId = null;
+				}
+			},
+			{
+				id: 'change-role',
+				label: 'Cambiar Rol',
+				icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`,
+				action: () => {
+					onUpdateRole?.(user);
+					openMenuId = null;
+				}
+			}
+		];
+	}
 
 	const colors = {
 		cream: '#f4e9c4',
@@ -54,7 +106,7 @@
 		<TableBody>
 			{#each users as user (user.id)}
 				<TableRow class="hover:bg-light-one_d">
-					<TableCell class="font-mono text-xs">{user.id.slice(0, 8)}...</TableCell>
+					<TableCell class="font-mono text-xs">{user.id}</TableCell>
 					<TableCell class="font-medium">{user.username}</TableCell>
 					<TableCell>{user.email}</TableCell>
 					<TableCell>{user.full_name}</TableCell>
@@ -97,18 +149,28 @@
 					<TableCell class="text-sm text-light-two_d">{formatDate(user.updated_at)}</TableCell>
 					<TableCell>
 						{#if onAction}
-							<button
-								class="action-button"
-								style="background-color: {colors.gold};"
-								onclick={() => onAction?.(user)}
-								aria-label="Acciones"
-							>
-								<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-									<circle cx="12" cy="12" r="1"></circle>
-									<circle cx="12" cy="5" r="1"></circle>
-									<circle cx="12" cy="19" r="1"></circle>
-								</svg>
-							</button>
+							<div class="relative">
+								<button
+									class="action-button"
+									style="background-color: {colors.gold};"
+									onclick={() => toggleMenu(user.id)}
+									aria-label="Acciones"
+								>
+									<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+										<circle cx="12" cy="12" r="2"></circle>
+										<circle cx="12" cy="5" r="2"></circle>
+										<circle cx="12" cy="19" r="2"></circle>
+									</svg>
+								</button>
+								<div class="dropdown-wrapper">
+									<DropdownMenu
+										isOpen={openMenuId === user.id}
+										options={getMenuOptions(user)}
+										width="140px"
+										class="absolute top-full right-0 mt-2"
+									/>
+								</div>
+							</div>
 						{/if}
 					</TableCell>
 				</TableRow>
@@ -116,60 +178,3 @@
 		</TableBody>
 	</Table>
 </div>
-
-<style>
-	.table-container {
-		overflow-x: auto;
-		border-radius: 0.5rem;
-		border: 1px solid #e5e7eb;
-		background: white;
-	}
-
-	.role-badge {
-		display: inline-block;
-		padding: 0.25rem 0.75rem;
-		border-radius: 9999px;
-		font-size: 0.75rem;
-		font-weight: 700;
-		color: white;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-	}
-
-	.status-badge {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.25rem;
-		padding: 0.25rem 0.5rem;
-		border-radius: 0.375rem;
-		font-size: 0.875rem;
-		font-weight: 600;
-	}
-
-	.status-badge.active {
-		background-color: #d1fae5;
-		color: #065f46;
-	}
-
-	.status-badge.inactive {
-		background-color: #fee2e2;
-		color: #991b1b;
-	}
-
-	.action-button {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 2rem;
-		height: 2rem;
-		border-radius: 0.5rem;
-		border: none;
-		color: white;
-		cursor: pointer;
-		transition: opacity 0.2s ease;
-	}
-
-	.action-button:hover {
-		opacity: 0.8;
-	}
-</style>

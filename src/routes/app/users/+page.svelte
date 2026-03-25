@@ -5,22 +5,32 @@
 	import UserCard from '$lib/components/features/users/userCard.svelte';
 	import UsersTable from '$lib/components/features/users/usersTable.svelte';
 	import UsersFilters from '$lib/components/features/users/usersFilters.svelte';
-	import { Pagination, Button } from '$lib/components/ui';
+	import UserModal from '$lib/components/features/users/userModal.svelte';
+	import ResetPasswordModal from '$lib/components/features/users/resetPasswordModal.svelte';
+	import ChangeRoleModal from '$lib/components/features/users/changeRoleModal.svelte';
+	import { Pagination, Button, ModalConfirm } from '$lib/components/ui';
+	import { alert } from '$lib/utils';
 
 	// State
 	let usersData: UsersListResponse | null = $state(null);
-	let loading = $state(true);
-	let error = $state<string | null>(null);
+	let loading: boolean = $state(true);
+	let error: string | null = $state(null);
 
 	// Filters
-	let searchQuery = $state('');
+	let searchQuery: string = $state('');
 	let selectedRole: UserRole | null = $state(null);
 	let isActiveFilter: boolean | null = $state(null);
-	let currentPage = $state(1);
-	let perPage = $state(10);
+	let currentPage: number = $state(1);
+	let perPage: number = $state(10);
 
-	// Responsive
-	let isMobile = $state(false);
+	// Modals
+	let showModal: boolean = $state(false);
+	let selectedUser: User | null = $state(null);
+	let showDeleteConfirm: boolean = $state(false);
+	let userToDelete: User | null = $state(null);
+	let deleteLoading: boolean = $state(false);
+	let showResetPasswordModal: boolean = $state(false);
+	let showChangeRoleModal: boolean = $state(false);
 
 	const colors = {
 		cream: '#f4e9c4',
@@ -31,18 +41,8 @@
 	};
 
 	onMount(() => {
-		checkMobile();
-		window.addEventListener('resize', checkMobile);
 		loadUsers();
-
-		return () => {
-			window.removeEventListener('resize', checkMobile);
-		};
 	});
-
-	function checkMobile() {
-		isMobile = window.innerWidth < 1024;
-	}
 
 	async function loadUsers() {
 		loading = true;
@@ -58,8 +58,9 @@
 			};
 
 			usersData = await UsersService.getAll(filters);
-		} catch (err: any) {
-			error = err.message || 'Error al cargar usuarios';
+		} catch (err: unknown) {
+			const errorMsg = err instanceof Error ? err.message : 'Error al cargar usuarios';
+			error = errorMsg;
 			console.error('Error loading users:', err);
 		} finally {
 			loading = false;
@@ -97,8 +98,45 @@
 	}
 
 	function handleUserAction(user: User) {
-		console.log('Action for user:', user);
-		// TODO: Implement action menu
+		selectedUser = user;
+		showModal = true;
+	}
+
+	function handleDeleteUser(user: User) {
+		userToDelete = user;
+		showDeleteConfirm = true;
+	}
+
+	async function handleConfirmDelete() {
+		if (!userToDelete) return;
+
+		deleteLoading = true;
+		try {
+			await UsersService.delete(userToDelete.id);
+			loadUsers();
+			showDeleteConfirm = false;
+			userToDelete = null;
+		} catch (err: unknown) {
+			alert('error', 'Ocurrió un error al eliminar el usuario');
+			console.error('Error deleting user:', err);
+		} finally {
+			deleteLoading = false;
+		}
+	}
+
+	function handleCancelDelete() {
+		showDeleteConfirm = false;
+		userToDelete = null;
+	}
+
+	function handleResetPassword(user: User) {
+		selectedUser = user;
+		showResetPasswordModal = true;
+	}
+
+	function handleUpdateRole(user: User) {
+		selectedUser = user;
+		showChangeRoleModal = true;
 	}
 
 	function handleResetFilters() {
@@ -106,6 +144,10 @@
 		selectedRole = null;
 		isActiveFilter = null;
 		currentPage = 1;
+		loadUsers();
+	}
+
+	function handleSuccess() {
 		loadUsers();
 	}
 </script>
@@ -116,13 +158,27 @@
 		<h1 class="page-title" style="color: {colors.taupe};">Gestión de Usuarios</h1>
 		<div class="header-actions">
 			<Button variant="outline" onclick={handleResetFilters}>Reiniciar</Button>
-			<!-- <Button variant="default" style="background-color: {colors.rose};">
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+			<Button
+				variant="primary"
+				style="background-color: {colors.rose};"
+				onclick={() => {
+					selectedUser = null;
+					showModal = true;
+				}}
+			>
+				<svg
+					width="20"
+					height="20"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+				>
 					<line x1="12" y1="5" x2="12" y2="19"></line>
 					<line x1="5" y1="12" x2="19" y2="12"></line>
 				</svg>
 				Nuevo Usuario
-			</Button> -->
+			</Button>
 		</div>
 	</div>
 
@@ -137,7 +193,7 @@
 	/>
 
 	<!-- Pagination Controls (Top) -->
-	{#if usersData && !loading}
+	{#if usersData && !loading && !error}
 		<div class="pagination-controls">
 			<div class="per-page-selector">
 				<label for="per-page" style="color: {colors.taupe};">Página:</label>
@@ -211,16 +267,29 @@
 				</svg>
 				<p style="color: {colors.taupe};">No se encontraron usuarios</p>
 			</div>
-		{:else if isMobile}
+		{:else}
 			<!-- Mobile View: Cards -->
-			<div class="users-cards">
+			<div class="block md:hidden">
 				{#each usersData.data as user (user.id)}
-					<UserCard {user} onAction={handleUserAction} />
+					<UserCard
+						{user}
+						onAction={handleUserAction}
+						onDelete={handleDeleteUser}
+						onResetPassword={handleResetPassword}
+						onUpdateRole={handleUpdateRole}
+					/>
 				{/each}
 			</div>
-		{:else}
 			<!-- Desktop View: Table -->
-			<UsersTable users={usersData.data} onAction={handleUserAction} />
+			<div class="hidden md:block">
+				<UsersTable
+					users={usersData.data}
+					onAction={handleUserAction}
+					onDelete={handleDeleteUser}
+					onResetPassword={handleResetPassword}
+					onUpdateRole={handleUpdateRole}
+				/>
+			</div>
 		{/if}
 
 		<!-- Pagination (Bottom) -->
@@ -242,150 +311,37 @@
 			páginas: {usersData.total_pages}
 		</div>
 	{/if}
+
+	<!-- Modals -->
+	<UserModal
+		isOpen={showModal}
+		user={selectedUser}
+		onClose={() => (showModal = false)}
+		onSuccess={handleSuccess}
+	/>
+
+	<ModalConfirm
+		isOpen={showDeleteConfirm}
+		message={`¿Estás seguro de que deseas eliminar al usuario ${userToDelete?.full_name}?`}
+		onConfirm={handleConfirmDelete}
+		onCancel={handleCancelDelete}
+		loading={deleteLoading}
+	/>
+
+	<ResetPasswordModal
+		isOpen={showResetPasswordModal}
+		user={selectedUser}
+		onClose={() => (showResetPasswordModal = false)}
+		onSuccess={() => alert('success', 'Contraseña restablecida con éxito')}
+	/>
+
+	<ChangeRoleModal
+		isOpen={showChangeRoleModal}
+		user={selectedUser}
+		onClose={() => (showChangeRoleModal = false)}
+		onSuccess={() => {
+			alert('success', 'Rol actualizado con éxito');
+			loadUsers();
+		}}
+	/>
 </div>
-
-<style>
-	.users-page {
-		padding: 1.5rem;
-		max-width: 1400px;
-		margin: 0 auto;
-	}
-
-	.page-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: 2rem;
-		flex-wrap: wrap;
-		gap: 1rem;
-	}
-
-	.page-title {
-		font-size: 2rem;
-		font-weight: 700;
-		margin: 0;
-	}
-
-	.header-actions {
-		display: flex;
-		gap: 0.75rem;
-	}
-
-	.pagination-controls {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: 1rem;
-		padding: 1rem;
-		background-color: white;
-		border-radius: 0.5rem;
-		border: 1px solid #e5e7eb;
-		flex-wrap: wrap;
-		gap: 1rem;
-	}
-
-	.per-page-selector {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		font-size: 0.875rem;
-	}
-
-	.page-input {
-		width: 4rem;
-		padding: 0.375rem 0.5rem;
-		border: 1px solid #d1d5db;
-		border-radius: 0.375rem;
-		text-align: center;
-	}
-
-	.per-page-select {
-		padding: 0.375rem 0.75rem;
-		border: 1px solid #d1d5db;
-		border-radius: 0.375rem;
-		background-color: white;
-		cursor: pointer;
-	}
-
-	.action-buttons {
-		display: flex;
-		gap: 0.5rem;
-	}
-
-	.loading-container {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		padding: 4rem 2rem;
-		gap: 1rem;
-	}
-
-	.spinner {
-		width: 3rem;
-		height: 3rem;
-		border: 4px solid #f3f4f6;
-		border-top-color: #a78d70;
-		border-radius: 50%;
-		animation: spin 1s linear infinite;
-	}
-
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
-	.error-container {
-		padding: 1rem;
-		border-radius: 0.5rem;
-		color: white;
-		text-align: center;
-	}
-
-	.empty-state {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		padding: 4rem 2rem;
-		gap: 1rem;
-	}
-
-	.users-cards {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-	}
-
-	.pagination-wrapper {
-		margin-top: 2rem;
-	}
-
-	.summary {
-		margin-top: 1rem;
-		text-align: center;
-		font-size: 0.875rem;
-		font-weight: 500;
-	}
-
-	/* Responsive */
-	@media (max-width: 768px) {
-		.users-page {
-			padding: 1rem;
-		}
-
-		.page-title {
-			font-size: 1.5rem;
-		}
-
-		.pagination-controls {
-			flex-direction: column;
-			align-items: stretch;
-		}
-
-		.per-page-selector {
-			flex-wrap: wrap;
-		}
-	}
-</style>

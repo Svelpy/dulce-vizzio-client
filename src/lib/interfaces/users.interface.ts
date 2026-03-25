@@ -20,3 +20,21 @@ export interface UsersListResponse {
 	total_pages: number;
 	data: User[];
 }
+
+export interface CreateUserRequest {
+	password: string;
+	email: string;
+	full_name: string;
+	username?: string;
+	phone_number?: string;
+	birth_date?: string;
+	role: UserRole;
+}
+
+export interface UpdateUserRequest {
+	email?: string;
+	full_name?: string;
+	username?: string;
+	phone_number?: string;
+	birth_date?: string;
+}
