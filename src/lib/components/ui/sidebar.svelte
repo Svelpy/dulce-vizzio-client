@@ -10,14 +10,12 @@
 	} from '$lib/icons/outline';
 	import { currentUser } from '$lib/stores/auth.store';
 	import { sidebarState } from '$lib/stores/sidebar.store';
-	import { canAccessPath, Role } from '$lib/constants/roles';
-
-	let isHovering = $state(false);
+	import { canAccessPath } from '$lib/constants/roles';
 
 	interface MenuItem {
 		label: string;
 		href: string;
-		icon: any;
+		icon: unknown;
 	}
 
 	const originalMenuItems: MenuItem[] = [
@@ -29,6 +27,7 @@
 		{ label: 'Mi Perfil', href: '/app/profile', icon: UserIcon }
 	];
 
+	let isHovering: boolean = false;
 	const originalAdminItems: MenuItem[] = [];
 	const menuItems = $derived(
 		originalMenuItems.filter((item) => canAccessPath($currentUser?.role, item.href))
@@ -44,13 +43,13 @@
 
 	const showAdminSection = $derived(adminItems.length > 0);
 
-	const toggleVisibility = () => {
-		if ($sidebarState === 'hidden') {
-			$sidebarState = 'icon-only';
-		} else {
-			$sidebarState = 'hidden';
-		}
-	};
+	// const toggleVisibility = () => {
+	// 	if ($sidebarState === 'hidden') {
+	// 		$sidebarState = 'icon-only';
+	// 	} else {
+	// 		$sidebarState = 'hidden';
+	// 	}
+	// };
 
 	const toggleExpansion = () => {
 		if ($sidebarState === 'icon-only') {
@@ -77,23 +76,8 @@
 	};
 </script>
 
-<button
-	onclick={toggleVisibility}
-	class="fixed top-0 left-0 z-50 hidden h-16 w-16 items-center justify-center border-r border-b border-r-light-five border-b-light-five bg-light-two text-light-one transition-all hover:text-light-one_d md:flex"
-	aria-label="Toggle sidebar"
->
-	<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-		<path
-			stroke-linecap="round"
-			stroke-linejoin="round"
-			stroke-width="2"
-			d="M4 6h16M4 12h16M4 18h16"
-		/>
-	</svg>
-</button>
-
 <aside
-	class="fixed top-16 left-0 z-40 h-[calc(100vh-4rem)] border-r border-light-five bg-light-two transition-all duration-300 dark:bg-dark-two {getSidebarWidth()} {$sidebarState ===
+	class="fixed top-16 left-0 z-40 hidden h-[calc(100vh-4rem)] bg-light-two transition-all duration-300 md:block dark:bg-dark-two {getSidebarWidth()} {$sidebarState ===
 	'hidden'
 		? 'pointer-events-none -translate-x-full opacity-0'
 		: 'translate-x-0 opacity-100'}"
@@ -138,7 +122,7 @@
 						<div class="mx-auto my-3 w-8 border-t border-gray-600"></div>
 					{/if}
 					<div class="space-y-2">
-						{#each adminItems as item}
+						{#each adminItems as item, index (index)}
 							<a
 								href={item.href}
 								class="flex items-center rounded-lg px-3 py-3 text-sm font-medium transition-all {isActive(

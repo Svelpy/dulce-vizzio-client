@@ -54,7 +54,7 @@
 			loading = true;
 			error = '';
 			course = await courseService.getCourseBySlug(slug);
-			console.log(course);
+			console.log('course slug', course);
 
 			// Auto-select first available lesson
 			if (course && course.lessons.length > 0) {

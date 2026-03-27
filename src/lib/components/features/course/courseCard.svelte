@@ -3,6 +3,7 @@
 	import { BookIcon, ClockIcon, UsersIcon } from '$lib/icons/outline';
 	import { StarIcon } from '$lib/icons/solid';
 	import type { Course } from '$lib/interfaces';
+	import { formatDuration } from '$lib/utils';
 
 	interface Props {
 		course: Course;
@@ -24,14 +25,6 @@
 		contentVisible = true
 	}: Props = $props();
 
-	const formatDuration = (hours: number): string => {
-		const h = Math.floor(hours);
-		const m = Math.round((hours - h) * 60);
-		if (h === 0) return `${m}min`;
-		if (m === 0) return `${h}h`;
-		return `${h}h ${m}min`;
-	};
-
 	const handleCtaClick = (e: MouseEvent) => {
 		e.stopPropagation();
 		if (course.is_enrolled) {
@@ -42,14 +35,12 @@
 			const whatsappURL = `https://api.whatsapp.com/send?phone=59175618048&text=${encodedMessage}`;
 
 			window.open(whatsappURL, '_blank');
-			// const waUrl = course.whatsapp_group_url ?? 'https://wa.me/';
-			// window.open(waUrl, '_blank', 'noopener,noreferrer');
 		}
 	};
 </script>
 
 <div
-	class="group relative cursor-pointer overflow-hidden rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+	class="group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-light-five/30 bg-white transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl dark:border-dark-five dark:bg-dark-two"
 	role="button"
 	tabindex="0"
 	{onclick}
@@ -60,7 +51,7 @@
 		}
 	}}
 >
-	<div class="bg-cream relative h-48 w-full overflow-hidden">
+	<div class="relative h-48 min-h-48 w-full overflow-hidden">
 		{#if course.cover_image_url}
 			<img
 				src={course.cover_image_url}
@@ -91,73 +82,76 @@
 	</div>
 
 	{#if contentVisible}
-		<div class="h-full rounded-md p-5">
-			<p class="text-taupe mb-2 text-xs font-medium tracking-wide uppercase">
-				{course.category}
-			</p>
+		<div class="flex flex-1 flex-col p-4">
+			<div class="flex-1">
+				<p class="text-taupe mb-2 text-xs font-medium tracking-wide uppercase">
+					{course.category}
+				</p>
 
-			<h3
-				class="group-hover:text-rose mb-2 line-clamp-2 text-lg font-bold text-gray-900 transition-colors"
-			>
-				{course.title}
-			</h3>
+				<h3
+					class="group-hover:text-rose mb-2 line-clamp-2 text-lg font-bold text-gray-900 transition-colors"
+				>
+					{course.title}
+				</h3>
 
-			<!-- Description -->
-			<p class="mb-4 line-clamp-2 text-sm text-gray-600">
-				{course.description}
-			</p>
+				<!-- Description -->
+				<p class="mb-4 line-clamp-2 text-sm text-gray-600">
+					{course.description}
+				</p>
 
-			<!-- Stats Row -->
-			<div class="mt-auto mb-4 flex items-center gap-4 text-xs text-gray-500">
-				<!-- Rating -->
-				{#if course.rating_average}
+				<!-- Stats Row -->
+				<div class="mb-4 flex items-center gap-4 text-xs text-gray-500">
+					<!-- Rating -->
+					{#if course.rating_average}
+						<div class="flex items-center gap-1">
+							<StarIcon class="text-gold fill-gold h-4 w-4" />
+							<span class="font-semibold text-gray-700">{course.rating_average.toFixed(1)}</span>
+						</div>
+					{/if}
+
+					<!-- Duration -->
 					<div class="flex items-center gap-1">
-						<StarIcon class="text-gold fill-gold h-4 w-4" />
-						<span class="font-semibold text-gray-700">{course.rating_average.toFixed(1)}</span>
+						<ClockIcon class="h-4 w-4" />
+						<span>{formatDuration(course.total_duration_hours)}</span>
 					</div>
-				{/if}
 
-				<!-- Duration -->
-				<div class="flex items-center gap-1">
-					<ClockIcon class="h-4 w-4" />
-					<span>{formatDuration(course.total_duration_hours)}</span>
-				</div>
-
-				<!-- Lessons -->
-				<div class="flex items-center gap-1">
-					<BookIcon class="h-4 w-4" />
-					<span>{course.lessons_count} lecciones</span>
-				</div>
-
-				<!-- Students -->
-				{#if course.enrollment_count > 0}
+					<!-- Lessons -->
 					<div class="flex items-center gap-1">
-						<UsersIcon class="h-4 w-4" />
-						<span>{course.enrollment_count}</span>
+						<BookIcon class="h-4 w-4" />
+						<span>{course.lessons_count} lecciones</span>
+					</div>
+
+					<!-- Students -->
+					{#if course.enrollment_count > 0}
+						<div class="flex items-center gap-1">
+							<UsersIcon class="h-4 w-4" />
+							<span>{course.enrollment_count}</span>
+						</div>
+					{/if}
+				</div>
+
+				<!-- Progress Bar (if enrolled) -->
+				{#if showProgress}
+					<div class="mt-4">
+						<div class="mb-1 flex items-center justify-between text-xs text-gray-600">
+							<span>Progreso</span>
+							<span class="font-semibold">{progress}%</span>
+						</div>
+						<div class="bg-grey/30 h-2 w-full overflow-hidden rounded-full">
+							<div
+								class="from-rose to-gold h-full bg-linear-to-r transition-all duration-500"
+								style="width: {progress}%"
+							></div>
+						</div>
 					</div>
 				{/if}
 			</div>
 
-			<!-- Progress Bar (if enrolled) -->
-			{#if showProgress}
-				<div class="mt-4">
-					<div class="mb-1 flex items-center justify-between text-xs text-gray-600">
-						<span>Progreso</span>
-						<span class="font-semibold">{progress}%</span>
-					</div>
-					<div class="bg-grey/30 h-2 w-full overflow-hidden rounded-full">
-						<div
-							class="from-rose to-gold h-full bg-gradient-to-r transition-all duration-500"
-							style="width: {progress}%"
-						></div>
-					</div>
-				</div>
-			{/if}
-
-			<!-- CTA Button -->
-			<Button onclick={handleCtaClick} variant={'primary'} fullWidth>
-				{course.is_enrolled ? 'Ver curso' : 'Comprar'}
-			</Button>
+			<div class="mt-4 pt-2">
+				<Button onclick={handleCtaClick} variant="primary" fullWidth>
+					{course.is_enrolled ? 'Ver curso' : 'Comprar ahora'}
+				</Button>
+			</div>
 		</div>
 	{/if}
 </div>

@@ -4,10 +4,10 @@
 
 	let { children } = $props();
 
-	// Calculate margin based on sidebar state
-	const mainMargin = $derived(
-		$sidebarState === 'hidden' ? 'ml-0' : $sidebarState === 'icon-only' ? 'ml-16' : 'ml-16'
-	);
+	const mainMargin = $derived(`
+		transition-all duration-300
+		${$sidebarState === 'hidden' ? 'ml-0' : $sidebarState === 'icon-only' ? 'lg:ml-16 ml-0' : 'lg:ml-64 ml-0'}
+	`);
 </script>
 
 <div class="min-h-dvh bg-light-one dark:bg-dark-one">

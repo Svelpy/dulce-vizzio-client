@@ -64,3 +64,4 @@ export { default as ChevronsRightIcon } from './chevronsRightIcon.svelte';
 export { default as ChevronsLeftIcon } from './chevronsLeftIcon.svelte';
 export { default as XMarkIcon } from './xmarkIcon.svelte';
 export { default as WorldIcon } from './worldIcon.svelte';
+export { default as Menu2Icon } from './menu2Icon.svelte';

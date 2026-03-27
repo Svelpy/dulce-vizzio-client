@@ -1,36 +1,42 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { type Component } from 'svelte';
 	import { page } from '$app/stores';
 	import { currentUser, authStore } from '$lib/stores/auth.store';
-	import { UserIcon, BookIcon, HomeDotIcon } from '$lib/icons/outline';
+	import { UserIcon, BookIcon, HomeDotIcon, UsersIcon, Menu2Icon, XIcon } from '$lib/icons/outline';
 
 	import { canAccessPath } from '$lib/constants/roles';
 
-	let mobileMenuOpen = $state(false);
-	let userMenuOpen = $state(false);
-	let searchQuery = $state('');
+	let mobileMenuOpen: boolean = $state(false);
+	let userMenuOpen: boolean = $state(false);
 
-	const allNavLinks = [
+	interface MenuItem {
+		label: string;
+		href: string;
+		icon: Component<any>;
+	}
+
+	const originalMenuItems: MenuItem[] = [
 		{ label: 'Dashboard', href: '/app/dashboard', icon: HomeDotIcon },
+		{ label: 'Mis Cursos', href: '/app/my-enrollments', icon: BookIcon },
 		{ label: 'Cursos', href: '/app/courses', icon: BookIcon },
-		{ label: 'Mis Cursos', href: '/app/my-courses', icon: BookIcon }
+		{ label: 'Inscripciones', href: '/app/enrollments', icon: BookIcon },
+		{ label: 'Usuarios', href: '/app/users', icon: UsersIcon },
+		{ label: 'Mi Perfil', href: '/app/profile', icon: UserIcon }
 	];
 
-	const navLinks = $derived(
-		allNavLinks.filter((link) => canAccessPath($currentUser?.role, link.href))
+	const originalAdminItems: MenuItem[] = [];
+
+	const menuItems = $derived(
+		originalMenuItems.filter((item) => canAccessPath($currentUser?.role, item.href))
 	);
 
-	const handleSearch = (e: Event) => {
-		e.preventDefault();
-		if (searchQuery.trim()) {
-			goto(`/app/courses?search=${encodeURIComponent(searchQuery)}`);
-			mobileMenuOpen = false;
-		}
-	};
+	const adminItems = $derived(
+		originalAdminItems.filter((item) => canAccessPath($currentUser?.role, item.href))
+	);
 
 	const handleLogout = async () => {
 		await authStore.logout();
-		goto('/auth/sign-in');
+		redirect('/auth/sign-in');
 	};
 
 	const isActive = (href: string) => {
@@ -55,22 +61,55 @@
 	};
 
 	import { onMount } from 'svelte';
+	import { sidebarState } from '$lib/stores';
+	import { redirect } from '$lib/utils';
 	onMount(() => {
 		document.addEventListener('click', handleClickOutside);
 		return () => {
 			document.removeEventListener('click', handleClickOutside);
 		};
 	});
+
+	const toggleVisibility = () => {
+		if ($sidebarState === 'hidden') {
+			$sidebarState = 'icon-only';
+		} else {
+			$sidebarState = 'hidden';
+		}
+	};
 </script>
 
 <nav
-	class="fixed top-0 right-0 left-16 z-50 border-b border-b-light-five bg-light-two dark:bg-dark-two"
+	class="fixed top-0 right-0 z-50 flex bg-light-two transition-all duration-300 dark:bg-dark-two {$sidebarState ===
+	'hidden'
+		? 'left-0'
+		: 'left-0'}"
 >
-	<div class="container mx-auto px-4">
+	<div class="w-full px-4">
 		<div class="flex h-16 w-full items-center justify-between">
-			<div class=" flex items-center">
+			<button
+				onclick={toggleVisibility}
+				class="mr-2 hidden items-center justify-center bg-light-two p-2 text-light-one transition-all hover:text-light-one_d md:flex"
+				aria-label="Toggle sidebar"
+			>
+				<Menu2Icon class="h-6 w-6" />
+			</button>
+			<!-- Mobile Hamburger -->
+			<button
+				onclick={toggleMobileMenu}
+				class="mr-2 rounded-lg p-2 text-light-one hover:bg-light-five md:hidden"
+				aria-label="Toggle menu"
+			>
+				{#if mobileMenuOpen}
+					<XIcon class="h-6 w-6" />
+				{:else}
+					<Menu2Icon class="h-6 w-6" />
+				{/if}
+			</button>
+
+			<div class="flex flex-1 items-center">
 				<div class="flex items-center">
-					<img src="/images/logo_dulce_vizzio.png" alt="Logo Dulce Vizzio" class="h-12 w-16" />
+					<img src="/images/logo_dulce_vizzio.png" alt="Logo Dulce Vizzio" class="h-10 w-auto" />
 				</div>
 			</div>
 
@@ -112,54 +151,37 @@
 					</svg>
 				</form>
 			</div> -->
-
 			<!-- Right Side: User Menu -->
 			<div class="flex items-center gap-4">
 				{#if $currentUser}
-					<div class="user-menu-container relative hidden md:block">
+					<div class="user-menu-container relative">
 						<button
 							onclick={toggleUserMenu}
-							class="rounded-full bg-light-one p-3 text-sm text-light-black transition-colors hover:bg-light-one_d"
+							class="flex h-10 w-10 items-center justify-center rounded-full bg-light-five text-light-one transition-all hover:bg-light-five_d"
 						>
 							<UserIcon class="h-5 w-5" />
-							<!-- <span class="hidden lg:block">{user.name || 'Usuario'}</span> -->
 						</button>
 
 						{#if userMenuOpen}
 							<div
-								class="ring-opacity-5 absolute right-0 mt-2 w-48 rounded-lg bg-white py-2 shadow-xl ring-1 ring-black"
+								class="absolute right-0 mt-3 w-56 origin-top-right rounded-xl border border-light-five bg-light-two p-2 shadow-2xl ring-1 ring-black/5"
 							>
+								<div class="mb-2 px-4 py-3">
+									<p class="text-sm font-bold text-light-one">{$currentUser.full_name}</p>
+									<p class="truncate text-xs text-gray-400">{$currentUser.email}</p>
+								</div>
+								<hr class="mb-1 border-light-five" />
 								<a
 									href="/app/profile"
-									class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+									class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-light-one transition-all hover:bg-light-five"
+									onclick={() => (userMenuOpen = false)}
 								>
 									<UserIcon class="h-5 w-5" />
 									Mi Perfil
 								</a>
-								<a
-									href="/app/settings"
-									class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-								>
-									<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-										/>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-										/>
-									</svg>
-									Configuración
-								</a>
-								<hr class="my-2" />
 								<button
 									onclick={handleLogout}
-									class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100"
+									class="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-red-500 transition-all hover:bg-red-50/10"
 								>
 									<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path
@@ -175,160 +197,68 @@
 						{/if}
 					</div>
 				{:else}
-					<div class="hidden items-center gap-2 md:flex">
-						<a
-							href="/auth/sign-in"
-							class="rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800"
-						>
-							Iniciar Sesión
-						</a>
-						<!-- <a
-							href="/auth/sign-up"
-							class="rounded-lg bg-rose-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-rose-600"
-						>
-							Registrarse
-						</a> -->
-					</div>
+					<a
+						href="/auth/sign-in"
+						class="rounded-xl bg-light-one px-6 py-2.5 text-sm font-bold text-light-black transition-all hover:bg-light-one_d"
+					>
+						Entrar
+					</a>
 				{/if}
-
-				<!-- Mobile Menu Button -->
-				<button
-					onclick={toggleMobileMenu}
-					class="rounded-lg p-2 text-gray-300 hover:bg-gray-800 hover:text-white md:hidden"
-					aria-label="Toggle menu"
-				>
-					{#if mobileMenuOpen}
-						<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M6 18L18 6M6 6l12 12"
-							/>
-						</svg>
-					{:else}
-						<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M4 6h16M4 12h16M4 18h16"
-							/>
-						</svg>
-					{/if}
-				</button>
 			</div>
 		</div>
 	</div>
 
-	<!-- Mobile Menu -->
+	<!-- Mobile Dropdown Navigation -->
 	{#if mobileMenuOpen}
-		<div class="border-t border-gray-800 bg-gray-900 md:hidden">
-			<div class="space-y-1 px-4 pt-2 pb-3">
-				<!-- Search (Mobile) -->
-				<form onsubmit={handleSearch} class="relative mb-4">
-					<input
-						type="text"
-						bind:value={searchQuery}
-						placeholder="Buscar cursos..."
-						class="w-full rounded-lg bg-gray-800 px-4 py-2 pl-10 text-sm text-white placeholder-gray-400 focus:ring-2 focus:ring-rose-400 focus:outline-none"
-					/>
-					<svg
-						class="absolute top-2.5 left-3 h-5 w-5 text-gray-400"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-						/>
-					</svg>
-				</form>
+		<div
+			class="fixed inset-0 top-16 z-40 bg-black/50 lg:hidden"
+			onclick={() => (mobileMenuOpen = false)}
+			role="button"
+			tabindex="-1"
+			onkeydown={(e) => e.key === 'Escape' && (mobileMenuOpen = false)}
+		></div>
 
-				<!-- Navigation Links -->
-				{#each navLinks as link}
+		<div
+			class="absolute top-16 left-0 z-50 w-full border-b border-light-five bg-light-two p-4 lg:hidden"
+		>
+			<nav class="space-y-2">
+				{#each menuItems as item (item.href)}
 					<a
-						href={link.href}
+						href={item.href}
 						onclick={() => (mobileMenuOpen = false)}
-						class="flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium transition-colors {isActive(
-							link.href
+						class="flex items-center gap-4 rounded-xl px-4 py-3.5 text-sm font-semibold transition-all {isActive(
+							item.href
 						)
-							? 'bg-gray-800 text-rose-400'
-							: 'text-gray-300 hover:bg-gray-800 hover:text-white'}"
+							? 'bg-light-five text-light-one shadow-sm'
+							: 'text-gray-400 hover:bg-light-five hover:text-light-one'}"
 					>
-						{#if link.icon}
-							<link.icon class="h-5 w-5" />
-						{/if}
-						{link.label}
+						<item.icon class="h-5 w-5" />
+						<span>{item.label}</span>
 					</a>
 				{/each}
 
-				{#if $currentUser}
-					<hr class="my-2 border-gray-800" />
-					<a
-						href="/app/profile"
-						onclick={() => (mobileMenuOpen = false)}
-						class="flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-800 hover:text-white"
-					>
-						<UserIcon class="h-5 w-5" />
-						Mi Perfil
-					</a>
-					<a
-						href="/app/settings"
-						onclick={() => (mobileMenuOpen = false)}
-						class="flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-800 hover:text-white"
-					>
-						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-							/>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-							/>
-						</svg>
-						Configuración
-					</a>
-					<button
-						onclick={handleLogout}
-						class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-base font-medium text-red-400 hover:bg-gray-800"
-					>
-						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-							/>
-						</svg>
-						Cerrar Sesión
-					</button>
-				{:else}
-					<hr class="my-2 border-gray-800" />
-					<a
-						href="/auth/sign-in"
-						onclick={() => (mobileMenuOpen = false)}
-						class="block rounded-lg px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-800 hover:text-white"
-					>
-						Iniciar Sesión
-					</a>
-					<a
-						href="/auth/sign-up"
-						onclick={() => (mobileMenuOpen = false)}
-						class="block rounded-lg bg-rose-500 px-3 py-2 text-base font-medium text-white hover:bg-rose-600"
-					>
-						Registrarse
-					</a>
+				{#if adminItems.length > 0}
+					<div class="mt-4 border-t border-light-five pt-4">
+						<p class="mb-2 px-4 text-xs font-bold tracking-wider text-gray-500 uppercase">
+							Administración
+						</p>
+						{#each adminItems as item (item.href)}
+							<a
+								href={item.href}
+								onclick={() => (mobileMenuOpen = false)}
+								class="flex items-center gap-4 rounded-xl px-4 py-3.5 text-sm font-semibold transition-all {isActive(
+									item.href
+								)
+									? 'bg-light-five text-light-one shadow-sm'
+									: 'text-gray-400 hover:bg-light-five hover:text-light-one'}"
+							>
+								<item.icon class="h-5 w-5" />
+								<span>{item.label}</span>
+							</a>
+						{/each}
+					</div>
 				{/if}
-			</div>
+			</nav>
 		</div>
 	{/if}
 </nav>

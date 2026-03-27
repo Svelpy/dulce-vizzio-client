@@ -5,3 +5,4 @@ export * from './formatDate';
 export * from './validateSchema';
 export * from './alert';
 export * from './debounce';
+export * from './formatDurationHours';
