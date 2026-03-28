@@ -4,8 +4,8 @@
 	import { EnrollmentsService, CoursesService } from '$lib/services';
 	import { currentUser } from '$lib/stores/auth.store';
 	import type { Enrollment, Course } from '$lib/interfaces';
-	import { Button } from '$lib/components/ui';
-	import { redirect } from '$lib/utils';
+	import { Button, Heading, MainLayout } from '$lib/components/ui';
+	import { getGreetingMessage, redirect } from '$lib/utils';
 	import { DashboardSkeleton } from '$lib/components/skeletons/dashboard';
 
 	let myEnrollments: Enrollment[] = $state([]);
@@ -42,51 +42,58 @@
 	};
 </script>
 
-{#if loading}
-	<DashboardSkeleton />
-{:else}
-	<div class="space-y-8">
-		<div class="">
-			<h1 class="mb-2 text-3xl font-bold text-light-black">
-				¡Bienvenido de vuelta, <span class="text-light-three dark:text-dark-two">
-					{$currentUser?.full_name || 'Estudiante'}</span
-				>! 👋
-			</h1>
+<MainLayout
+	title="Dashboard"
+	description="Bienvenido a tu plataforma de aprendizaje"
+	class="container mx-auto"
+>
+	{#if loading}
+		<DashboardSkeleton />
+	{:else}
+		<div class="space-y-8">
+			<div class="">
+				<Heading class="mb-2 " level="h3">
+					{getGreetingMessage()},
+					<span class="text-light-three dark:text-dark-two">
+						{$currentUser?.full_name || 'Estudiante'}</span
+					>
+				</Heading>
+			</div>
+
+			{#if enrolledCourses.length > 0}
+				<div>
+					<h2 class="mb-6 text-2xl font-bold text-light-black">Mis Cursos</h2>
+					<div class="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-5">
+						{#each enrolledCourses as course (course.id)}
+							{@const enrollment = myEnrollments.find((e) => e.course_id === course.id)}
+							<CourseCard
+								{course}
+								showProgress={true}
+								progress={enrollment ? calculateProgress(enrollment, course) : 0}
+								onclick={() => handleCourseClick(course.slug)}
+							/>
+						{/each}
+					</div>
+				</div>
+			{:else}
+				<div class="rounded-xl p-12 text-center">
+					<div class="mb-4 text-6xl">📚</div>
+					<h3 class="mb-2 text-xl font-bold text-gray-900">No tienes cursos activos</h3>
+					<p class="mb-6 text-gray-600">Explora nuestro catálogo y comienza a aprender</p>
+					<Button onclick={() => redirect('/app/courses')} variant="ghost">Explorar Cursos</Button>
+				</div>
+			{/if}
+
+			{#if recommendedCourses.length > 0}
+				<div>
+					<h2 class="mb-6 text-2xl font-bold text-light-black">Cursos Recomendados</h2>
+					<div class="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-5">
+						{#each recommendedCourses as course (course.id)}
+							<CourseCard {course} onclick={() => redirect(`/app/courses/${course.slug}`)} />
+						{/each}
+					</div>
+				</div>
+			{/if}
 		</div>
-
-		{#if enrolledCourses.length > 0}
-			<div>
-				<h2 class="mb-6 text-2xl font-bold text-light-black">Mis Cursos</h2>
-				<div class="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-5">
-					{#each enrolledCourses as course (course.id)}
-						{@const enrollment = myEnrollments.find((e) => e.course_id === course.id)}
-						<CourseCard
-							{course}
-							showProgress={true}
-							progress={enrollment ? calculateProgress(enrollment, course) : 0}
-							onclick={() => handleCourseClick(course.slug)}
-						/>
-					{/each}
-				</div>
-			</div>
-		{:else}
-			<div class="rounded-xl p-12 text-center">
-				<div class="mb-4 text-6xl">📚</div>
-				<h3 class="mb-2 text-xl font-bold text-gray-900">No tienes cursos activos</h3>
-				<p class="mb-6 text-gray-600">Explora nuestro catálogo y comienza a aprender</p>
-				<Button onclick={() => redirect('/app/courses')} variant="ghost">Explorar Cursos</Button>
-			</div>
-		{/if}
-
-		{#if recommendedCourses.length > 0}
-			<div>
-				<h2 class="mb-6 text-2xl font-bold text-light-black">Cursos Recomendados</h2>
-				<div class="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-5">
-					{#each recommendedCourses as course (course.id)}
-						<CourseCard {course} onclick={() => redirect(`/app/courses/${course.slug}`)} />
-					{/each}
-				</div>
-			</div>
-		{/if}
-	</div>
-{/if}
+	{/if}
+</MainLayout>

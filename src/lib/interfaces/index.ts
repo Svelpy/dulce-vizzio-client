@@ -10,3 +10,4 @@ export * from './menuSidebarItem.interface';
 export * from './dropdownOption.interface';
 export * from './error.interface';
 export * from './courseDetail.interface';
+export * from './layout.interface';

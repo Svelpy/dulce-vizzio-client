@@ -1,17 +1,16 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { Button } from '$lib/components/ui';
-	import Navbar from '$lib/components/ui/navbar.svelte';
-	import CategoryNav from '$lib/components/ui/categoryNav.svelte';
+	import { Button, MainLayout } from '$lib/components/ui';
 	import CourseCard from '$lib/components/features/course/courseCard.svelte';
 	import CategoryCard from '$lib/components/features/course/categoryCard.svelte';
 	import TestimonialCard from '$lib/components/features/course/testimonialCard.svelte';
 	import { CoursesService } from '$lib/services';
 	import type { Course } from '$lib/interfaces';
 	import { onMount } from 'svelte';
-	import { FACEBOOK_URL, INSTAGRAM_URL, TIKTOK_URL, YOUBUBE_URL } from '$lib/constants';
 	import { FacebookIcon, InstagramIcon, TikTokIcon } from '$lib/icons/outline';
 	import { YoutubeIcon } from '$lib/icons/solid';
+	import { redirect } from '$lib/utils';
+	import { APP_SITE_CONFIG } from '$lib/constants';
 
 	let featuredCourses: Course[] = $state([]);
 	let loading = $state(true);
@@ -74,21 +73,22 @@
 	});
 
 	const handleCourseClick = (slug: string) => {
-		goto(`/app/courses/${slug}`);
+		redirect(`/app/courses/${slug}`);
 	};
 
 	const handleCategoryClick = (category: string) => {
-		goto(`/app/courses?category=${encodeURIComponent(category)}`);
+		redirect(`/app/courses?category=${encodeURIComponent(category)}`);
 	};
 </script>
 
-<div class="min-h-dvh">
+<MainLayout title={APP_SITE_CONFIG.APP_NAME} description={APP_SITE_CONFIG.APP_DESCRIPTION}>
+	<!-- <div class="min-h-dvh"> -->
 	<div class="container mx-auto flex items-center justify-between p-4">
 		<div class="flex items-center">
 			<img src="/images/logo_dulce_vizzio.png" alt="Logo Dulce Vizzio" class="h-12 w-16" />
 		</div>
 		<div>
-			<Button variant="secondary" onclick={() => goto('/auth/sign-in')}>Iniciar Sesión</Button>
+			<Button variant="secondary" onclick={() => redirect('/auth/sign-in')}>Iniciar Sesión</Button>
 		</div>
 	</div>
 	<!-- <Navbar /> -->
@@ -102,7 +102,7 @@
 				<div class="text-center lg:text-left">
 					<h1 class="mb-6 text-5xl font-bold text-gray-900 lg:text-6xl">
 						Domina el Arte de la
-						<span class="bg-gradient-to-r from-rose-500 to-orange-500 bg-clip-text text-transparent"
+						<span class="bg-linear-to-r from-rose-500 to-orange-500 bg-clip-text text-transparent"
 							>Repostería</span
 						>
 					</h1>
@@ -111,10 +111,10 @@
 						experto. Transforma tu pasión en una carrera exitosa.
 					</p>
 					<div class="flex flex-col justify-center gap-4 sm:flex-row lg:justify-start">
-						<Button size="lg" variant="primary" onclick={() => goto('/app/courses')}>
+						<Button size="lg" variant="primary" onclick={() => redirect('/app/courses')}>
 							Explorar Cursos
 						</Button>
-						<Button size="lg" variant="outline" onclick={() => goto('/auth/sign-in')}>
+						<Button size="lg" variant="outline" onclick={() => redirect('/auth/sign-in')}>
 							Iniciar Sesión
 						</Button>
 					</div>
@@ -189,7 +189,7 @@
 				<div class="mt-12 text-center">
 					<Button
 						variant="outline"
-						onclick={() => goto('/app/courses')}
+						onclick={() => redirect('/app/courses')}
 						class="border-2 border-rose-500 text-rose-500 hover:bg-rose-500 hover:text-white"
 					>
 						Ver Todos los Cursos
@@ -212,7 +212,7 @@
 			</div>
 
 			<div class="grid grid-cols-2 gap-6 md:grid-cols-3">
-				{#each categories as category}
+				{#each categories as category, index (index)}
 					<CategoryCard
 						title={category.title}
 						icon={category.icon}
@@ -235,7 +235,7 @@
 			</div>
 
 			<div class="grid grid-cols-2 gap-8 md:grid-cols-3">
-				{#each testimonials as testimonial}
+				{#each testimonials as testimonial, index (index)}
 					<TestimonialCard {...testimonial} />
 				{/each}
 			</div>
@@ -252,7 +252,7 @@
 			<Button
 				size="xl"
 				variant="secondary"
-				onclick={() => goto('/auth/sign-in')}
+				onclick={() => redirect('/auth/sign-in')}
 				class="bg-white text-rose-500 hover:bg-gray-100"
 			>
 				Comenzar Ahora
@@ -315,28 +315,28 @@
 						<li class="flex space-x-1">
 							<span class="rounded-full bg-blue-500 p-1 text-white"><FacebookIcon /></span><a
 								target="_blank"
-								href={FACEBOOK_URL}
+								href={APP_SITE_CONFIG.APP_FACEBOOK_URL}
 								class="transition-colors">Facebook</a
 							>
 						</li>
 						<li class="flex space-x-1">
 							<span class="rounded-full bg-pink-500 p-1 text-white"><InstagramIcon /></span><a
 								target="_blank"
-								href={INSTAGRAM_URL}
+								href={APP_SITE_CONFIG.APP_INSTAGRAM_URL}
 								class="transition-colors">Instagram</a
 							>
 						</li>
 						<li class="flex space-x-1">
 							<span class="rounded-full bg-red-500 p-1 text-white"><YoutubeIcon /></span><a
 								target="_blank"
-								href={YOUBUBE_URL}
+								href={APP_SITE_CONFIG.APP_YOUTUBE_URL}
 								class="transition-colors">Youtube</a
 							>
 						</li>
 						<li class="flex space-x-1">
 							<span class="rounded-full bg-black p-1 text-white"><TikTokIcon /></span><a
 								target="_blank"
-								href={TIKTOK_URL}
+								href={APP_SITE_CONFIG.APP_TIKTOK_URL}
 								class="transition-colors">Tiktok</a
 							>
 						</li>
@@ -349,4 +349,5 @@
 			</div>
 		</div>
 	</footer>
-</div>
+	<!-- </div> -->
+</MainLayout>

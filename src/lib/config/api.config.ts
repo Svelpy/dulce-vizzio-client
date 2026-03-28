@@ -1,10 +1,4 @@
-const getEnvVariable = (key: string): string => {
-	const value = import.meta.env[key];
-	if (!value) {
-		throw new Error(`La variable de entorno ${key} no está definida`);
-	}
-	return value;
-};
+import { getEnvVariable } from '$lib/utils';
 
 const API_BASE_URL = getEnvVariable('VITE_API_ENDPOINT');
 

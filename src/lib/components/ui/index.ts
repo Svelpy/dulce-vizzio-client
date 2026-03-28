@@ -24,3 +24,4 @@ export { default as Navbar } from './navbar.svelte';
 export { default as ErrorState } from './errorState.svelte';
 export { default as Loader } from './loader.svelte';
 export { default as Skeleton } from './skeleton.svelte';
+export { default as MainLayout } from './mainLayout.svelte';

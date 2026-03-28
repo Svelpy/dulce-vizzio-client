@@ -6,3 +6,5 @@ export * from './validateSchema';
 export * from './alert';
 export * from './debounce';
 export * from './formatDurationHours';
+export * from './getEnvVariable';
+export * from './getGrettingMessage';

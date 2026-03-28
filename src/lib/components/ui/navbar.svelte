@@ -3,6 +3,7 @@
 	import { page } from '$app/stores';
 	import { currentUser, authStore } from '$lib/stores/auth.store';
 	import { UserIcon, BookIcon, HomeDotIcon, UsersIcon, Menu2Icon, XIcon } from '$lib/icons/outline';
+	import logoApp from '$lib/assets/images/logo_dulce_vizzio.png';
 
 	import { canAccessPath } from '$lib/constants/roles';
 
@@ -109,7 +110,7 @@
 
 			<div class="flex flex-1 items-center">
 				<div class="flex items-center">
-					<img src="/images/logo_dulce_vizzio.png" alt="Logo Dulce Vizzio" class="h-10 w-auto" />
+					<img src={logoApp} alt="Logo Dulce Vizzio" class="h-10 w-auto" />
 				</div>
 			</div>
 
