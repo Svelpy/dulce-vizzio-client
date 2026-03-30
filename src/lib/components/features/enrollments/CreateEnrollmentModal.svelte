@@ -2,8 +2,7 @@
 	import type { User, Course, Enrollment } from '$lib/interfaces';
 	import { Button, BlurOverlay, Skeleton } from '$lib/components/ui';
 	import { alert } from '$lib/utils';
-	import { CoursesService, EnrollmentsService } from '$lib/services';
-	import { UsersService } from '$lib/services/users.service';
+	import { courseService, enrollmentService, userService } from '$lib/services';
 	import { UserIcon, XIcon, BookIcon, ZoomIcon } from '$lib/icons/outline';
 	import { fade, scale } from 'svelte/transition';
 	import { AlertTriangleIcon } from '$lib/icons/solid';
@@ -58,7 +57,7 @@
 
 		isLoadingUsers = true;
 		try {
-			const resp = await UsersService.getAll({ q: userSearch, per_page: 5 });
+			const resp = await userService.getAll({ q: userSearch, per_page: 5 });
 			users = resp.data;
 			showUserResults = true;
 		} catch (err) {
@@ -76,7 +75,7 @@
 
 		isLoadingCourses = true;
 		try {
-			const resp = await CoursesService.getAll({ search: courseSearch, limit: 5 });
+			const resp = await courseService.getAll({ search: courseSearch, limit: 5 });
 			courses = resp.data;
 			showCourseResults = true;
 		} catch (err) {
@@ -106,7 +105,7 @@
 
 		isSubmitting = true;
 		try {
-			const newEnrollment = await EnrollmentsService.create({
+			const newEnrollment = await enrollmentService.create({
 				user_id: selectedUser.id,
 				course_id: selectedCourse.id,
 				notes: notes || undefined

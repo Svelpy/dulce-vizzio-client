@@ -1,4 +1,4 @@
-import { apiAvicor } from '$lib/config/apiDulceVizzio.config';
+import { apiDulceVizzio } from '$lib/config';
 import type {
 	Course,
 	CourseDetail,
@@ -8,13 +8,12 @@ import type {
 	CreateCourseRequest,
 	CourseMaterial,
 	CreateLessonRequest,
-	UpdateLessonRequest
+	UpdateLessonRequest,
+	UpdateCourseRequest
 } from '$lib/interfaces';
 const BASE_PATH = '/courses';
-export class CoursesService {
-	//	static BASE_PATH = '/courses';
-
-	static async getAll(filters: CourseFilters = {}): Promise<CourseListResponse> {
+class CourseService {
+	getAll(filters: CourseFilters = {}): Promise<CourseListResponse> {
 		const params = new URLSearchParams();
 
 		if (filters.page) params.append('page', filters.page.toString());
@@ -22,41 +21,48 @@ export class CoursesService {
 		if (filters.category) params.append('category', filters.category);
 		if (filters.difficulty) params.append('difficulty', filters.difficulty);
 		if (filters.search) params.append('search', filters.search);
-		// NOTE: 'status' is NOT sent — the backend resolves it based on the user's role
 
 		const queryString = params.toString();
 		const endpoint = queryString ? `${BASE_PATH}?${queryString}` : BASE_PATH;
 
-		return apiAvicor.get<CourseListResponse>(endpoint);
+		return apiDulceVizzio.get<CourseListResponse>(endpoint);
 	}
 
-	static async create(data: CreateCourseRequest): Promise<Course> {
-		return apiAvicor.post<Course>(BASE_PATH, data);
+	create(data: CreateCourseRequest): Promise<Course> {
+		return apiDulceVizzio.post<Course>(BASE_PATH, data);
 	}
 
-	static async createLesson(courseId: string, data: CreateLessonRequest): Promise<Lesson> {
-		return apiAvicor.post<Lesson>(`${BASE_PATH}/${courseId}/lessons`, data);
+	update(courseId: string, data: UpdateCourseRequest): Promise<Course> {
+		return apiDulceVizzio.put<Course>(`${BASE_PATH}/${courseId}`, data);
 	}
 
-	static async updateLesson(lessonId: string, data: UpdateLessonRequest): Promise<Lesson> {
-		return apiAvicor.put<Lesson>(`/lessons/${lessonId}`, data);
+	delete(courseId: string): Promise<string> {
+		return apiDulceVizzio.delete<string>(`${BASE_PATH}/${courseId}`);
 	}
 
-	async getCourseBySlug(slug: string): Promise<CourseDetail> {
-		return apiAvicor.get<CourseDetail>(`${BASE_PATH}/${slug}`);
+	createLesson(courseId: string, data: CreateLessonRequest): Promise<Lesson> {
+		return apiDulceVizzio.post<Lesson>(`${BASE_PATH}/${courseId}/lessons`, data);
 	}
 
-	static async getLessons(courseId: string): Promise<Lesson[]> {
-		return apiAvicor.get<Lesson[]>(`${BASE_PATH}/${courseId}/lessons`);
+	updateLesson(lessonId: string, data: UpdateLessonRequest): Promise<Lesson> {
+		return apiDulceVizzio.put<Lesson>(`/lessons/${lessonId}`, data);
 	}
 
-	static async getLessonById(lessonId: string): Promise<Lesson> {
-		return apiAvicor.get<Lesson>(`/lessons/${lessonId}`);
+	getCourseBySlug(slug: string): Promise<CourseDetail> {
+		return apiDulceVizzio.get<CourseDetail>(`${BASE_PATH}/${slug}`);
 	}
 
-	async uploadMaterial(lessonId: string, data: FormData): Promise<CourseMaterial> {
-		return apiAvicor.post<CourseMaterial>(`/lessons/${lessonId}/materials`, data);
+	getLessons(courseId: string): Promise<Lesson[]> {
+		return apiDulceVizzio.get<Lesson[]>(`${BASE_PATH}/${courseId}/lessons`);
+	}
+
+	getLessonById(lessonId: string): Promise<Lesson> {
+		return apiDulceVizzio.get<Lesson>(`/lessons/${lessonId}`);
+	}
+
+	uploadMaterial(lessonId: string, data: FormData): Promise<CourseMaterial> {
+		return apiDulceVizzio.post<CourseMaterial>(`/lessons/${lessonId}/materials`, data);
 	}
 }
 
-export const courseService = new CoursesService();
+export const courseService = new CourseService();

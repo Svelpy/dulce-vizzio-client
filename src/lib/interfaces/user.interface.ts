@@ -1,3 +1,5 @@
+import type { UserRole } from './users.interface';
+
 export interface User {
 	id: string;
 	email: string;
@@ -5,7 +7,7 @@ export interface User {
 	username: string;
 	phone_number: string;
 	birth_date: string;
-	role: string;
+	role: UserRole;
 	is_active: boolean;
 	avatar_url: string | null;
 	created_at: string;

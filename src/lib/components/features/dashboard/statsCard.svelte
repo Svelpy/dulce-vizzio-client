@@ -14,13 +14,6 @@
 
 	let { title, value, icon, trend, color = 'rose' }: Props = $props();
 
-	const colorClasses = {
-		rose: 'bg-rose/10 text-rose',
-		gold: 'bg-gold/10 text-gold',
-		taupe: 'bg-taupe/10 text-taupe',
-		green: 'bg-green-500/10 text-green-600'
-	};
-
 	const iconBgClasses = {
 		rose: 'bg-rose',
 		gold: 'bg-gold',

@@ -40,6 +40,8 @@ export interface CreateCourseRequest {
 	whatsapp_group_url?: string;
 }
 
+export type UpdateCourseRequest = Partial<CreateCourseRequest>;
+
 // Filters for course listing
 export interface CourseFilters {
 	page?: number;

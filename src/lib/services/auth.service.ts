@@ -1,4 +1,4 @@
-import { apiAvicor } from '$lib/config/apiDulceVizzio.config';
+import { apiDulceVizzio } from '$lib/config';
 import type { LoginCredentials, LoginResponse } from '$lib/interfaces';
 import type { User } from '$lib/interfaces';
 import { AUTH_TOKEN_KEY, AUTH_USER_KEY } from '$lib/constants';
@@ -13,10 +13,10 @@ import { AUTH_TOKEN_KEY, AUTH_USER_KEY } from '$lib/constants';
  *
  * NO maneja estado reactivo — eso es responsabilidad del authStore.
  */
-export class AuthService {
+class AuthService {
 	// ─── Token Management ──────────────────────────────────────────────────────
 
-	static getToken(): string | null {
+	getToken(): string | null {
 		try {
 			return typeof localStorage !== 'undefined' ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
 		} catch {
@@ -24,7 +24,7 @@ export class AuthService {
 		}
 	}
 
-	static setToken(token: string): void {
+	setToken(token: string): void {
 		try {
 			localStorage.setItem(AUTH_TOKEN_KEY, token);
 		} catch (error) {
@@ -32,7 +32,7 @@ export class AuthService {
 		}
 	}
 
-	static clearToken(): void {
+	clearToken(): void {
 		try {
 			localStorage.removeItem(AUTH_TOKEN_KEY);
 		} catch (error) {
@@ -42,10 +42,10 @@ export class AuthService {
 
 	// ─── User Profile Management ───────────────────────────────────────────────
 
-	static getUserProfile(): User | null {
+	async getUserProfile(): Promise<User | null> {
 		try {
 			if (typeof localStorage === 'undefined') return null;
-			const raw = localStorage.getItem(AUTH_USER_KEY);
+			const raw = await localStorage.getItem(AUTH_USER_KEY);
 			return raw ? (JSON.parse(raw) as User) : null;
 		} catch (error) {
 			console.warn('[AuthService] Error obteniendo perfil del usuario:', error);
@@ -53,7 +53,7 @@ export class AuthService {
 		}
 	}
 
-	static setUserProfile(user: User): void {
+	setUserProfile(user: User): void {
 		try {
 			localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
 		} catch (error) {
@@ -61,7 +61,7 @@ export class AuthService {
 		}
 	}
 
-	static clearUserProfile(): void {
+	clearUserProfile(): void {
 		try {
 			localStorage.removeItem(AUTH_USER_KEY);
 		} catch (error) {
@@ -71,7 +71,7 @@ export class AuthService {
 
 	// ─── Auth State ────────────────────────────────────────────────────────────
 
-	static isAuthenticated(): boolean {
+	isAuthenticated(): boolean {
 		return this.getToken() !== null;
 	}
 
@@ -79,9 +79,9 @@ export class AuthService {
 	 * Limpia toda la sesión: token + perfil del usuario.
 	 * Llamar siempre este método en lugar de clearToken() solo.
 	 */
-	static clearSession(): void {
-		this.clearToken();
-		this.clearUserProfile();
+	async clearSession(): Promise<void> {
+		authService.clearToken();
+		authService.clearUserProfile();
 	}
 
 	// ─── Auth Operations ───────────────────────────────────────────────────────
@@ -90,18 +90,19 @@ export class AuthService {
 	 * Realiza el login contra la API y persiste el token y el perfil
 	 * en keys separadas de localStorage.
 	 */
-	static async login(credentials: LoginCredentials): Promise<LoginResponse> {
+	async login(credentials: LoginCredentials): Promise<LoginResponse> {
 		try {
-			const response = await apiAvicor.postPublic<LoginResponse>('/auth/login', credentials);
+			console.log('Credenciales:', credentials);
+			const response = await apiDulceVizzio.postPublic<LoginResponse>('/auth/login', credentials);
 
 			// Persistir token y perfil en keys separadas
-			this.setToken(response.access_token);
-			this.setUserProfile(response.user);
+			authService.setToken(response.access_token);
+			authService.setUserProfile(response.user);
 
 			return response;
 		} catch (error) {
 			// Si falla, asegurar limpieza
-			this.clearSession();
+			authService.clearSession();
 			throw error;
 		}
 	}
@@ -109,8 +110,8 @@ export class AuthService {
 	/**
 	 * Cierra la sesión limpiando token y perfil del usuario.
 	 */
-	static async logout(): Promise<void> {
-		this.clearSession();
+	async logout(): Promise<void> {
+		authService.clearSession();
 	}
 
 	// ─── Backward Compatibility ────────────────────────────────────────────────
@@ -118,14 +119,16 @@ export class AuthService {
 	/**
 	 * @deprecated Usar getUserProfile() en su lugar.
 	 */
-	static getUser(): User | null {
-		return this.getUserProfile();
+	async getUser(): Promise<User | null> {
+		return authService.getUserProfile();
 	}
 
 	/**
 	 * @deprecated Usar setUserProfile() en su lugar.
 	 */
-	static setUser(user: User): void {
-		this.setUserProfile(user);
+	setUser(user: User): void {
+		authService.setUserProfile(user);
 	}
 }
+
+export const authService = new AuthService();

@@ -1,8 +1,15 @@
 <script lang="ts">
 	import { Button, BlurOverlay, Input, TextArea } from '$lib/components/ui';
 	import { alert } from '$lib/utils';
-	import { CoursesService } from '$lib/services';
-	import { XIcon, BookIcon, ClockIcon, PlayerPlayIcon, WorldIcon, CodeIcon } from '$lib/icons/outline';
+	import { courseService } from '$lib/services';
+	import {
+		XIcon,
+		BookIcon,
+		ClockIcon,
+		PlayerPlayIcon,
+		WorldIcon,
+		CodeIcon
+	} from '$lib/icons/outline';
 	import { scale } from 'svelte/transition';
 	import type { CreateLessonRequest } from '$lib/interfaces';
 
@@ -33,7 +40,10 @@
 
 	async function handleSubmit() {
 		if (!title || durationSeconds <= 0) {
-			alert('error', 'Por favor, completa los campos obligatorios y asegúrate de que la duración sea mayor a 0');
+			alert(
+				'error',
+				'Por favor, completa los campos obligatorios y asegúrate de que la duración sea mayor a 0'
+			);
 			return;
 		}
 
@@ -48,7 +58,7 @@
 				video_id: videoId || undefined
 			};
 
-			await CoursesService.createLesson(courseId, lessonData);
+			await courseService.createLesson(courseId, lessonData);
 
 			alert('success', 'Lección creada exitosamente');
 			onSuccess();
@@ -112,22 +122,22 @@
 				<div class="custom-scrollbar max-h-[70vh] space-y-6 overflow-y-auto p-8">
 					<!-- Title -->
 					<div>
-						<label class="mb-2 block text-sm font-bold text-stone-700" for="title">Título de la Lección *</label>
+						<label class="mb-2 block text-sm font-bold text-stone-700" for="title"
+							>Título de la Lección *</label
+						>
 						<div class="relative">
 							<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
 								<BookIcon class="size-5 text-stone-400" />
 							</div>
-							<Input
-								id="title"
-								placeholder="Ej. Introducción a la masa"
-								bind:value={title}
-							/>
+							<Input id="title" placeholder="Ej. Introducción a la masa" bind:value={title} />
 						</div>
 					</div>
 
 					<!-- Summary -->
 					<div>
-						<label class="mb-2 block text-sm font-bold text-stone-700" for="summary">Resumen (Opcional)</label>
+						<label class="mb-2 block text-sm font-bold text-stone-700" for="summary"
+							>Resumen (Opcional)</label
+						>
 						<TextArea
 							id="summary"
 							placeholder="Breve descripción de lo que se verá en esta lección..."
@@ -139,17 +149,14 @@
 					<div class="grid gap-6 md:grid-cols-2">
 						<!-- Duration -->
 						<div>
-							<label class="mb-2 block text-sm font-bold text-stone-700" for="duration">Duración (segundos) *</label>
+							<label class="mb-2 block text-sm font-bold text-stone-700" for="duration"
+								>Duración (segundos) *</label
+							>
 							<div class="relative">
 								<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
 									<ClockIcon class="size-5 text-stone-400" />
 								</div>
-								<Input
-									id="duration"
-									type="number"
-									placeholder="600"
-									bind:value={durationSeconds}
-								/>
+								<Input id="duration" type="number" placeholder="600" bind:value={durationSeconds} />
 							</div>
 						</div>
 
@@ -158,8 +165,12 @@
 							<span class="mb-2 text-sm font-bold text-stone-700">Vista Previa</span>
 							<label class="relative inline-flex cursor-pointer items-center">
 								<input type="checkbox" bind:checked={isPreview} class="peer sr-only" />
-								<div class="peer h-6 w-11 rounded-full bg-stone-200 after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-stone-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-rose-600 peer-checked:after:translate-x-full peer-checked:after:border-white focus:outline-none focus:ring-4 focus:ring-rose-300"></div>
-								<span class="ml-3 text-sm font-medium text-stone-600">{isPreview ? 'Sí (Gratis)' : 'No (Solo inscritos)'}</span>
+								<div
+									class="peer h-6 w-11 rounded-full bg-stone-200 peer-checked:bg-rose-600 after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-stone-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white focus:ring-4 focus:ring-rose-300 focus:outline-none"
+								></div>
+								<span class="ml-3 text-sm font-medium text-stone-600"
+									>{isPreview ? 'Sí (Gratis)' : 'No (Solo inscritos)'}</span
+								>
 							</label>
 						</div>
 					</div>
@@ -169,10 +180,12 @@
 							<PlayerPlayIcon class="size-4 text-stone-600" />
 							Información de Video (Opcional)
 						</h3>
-						
+
 						<!-- Video URL -->
 						<div>
-							<label class="mb-1 block text-xs font-bold text-stone-500 uppercase" for="videoUrl">URL del Video</label>
+							<label class="mb-1 block text-xs font-bold text-stone-500 uppercase" for="videoUrl"
+								>URL del Video</label
+							>
 							<div class="relative">
 								<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
 									<WorldIcon class="size-4 text-stone-400" />
@@ -187,16 +200,14 @@
 
 						<!-- Video ID -->
 						<div>
-							<label class="mb-1 block text-xs font-bold text-stone-500 uppercase" for="videoId">ID del Video</label>
+							<label class="mb-1 block text-xs font-bold text-stone-500 uppercase" for="videoId"
+								>ID del Video</label
+							>
 							<div class="relative">
 								<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
 									<CodeIcon class="size-4 text-stone-400" />
 								</div>
-								<Input
-									id="videoId"
-									placeholder="abc-123"
-									bind:value={videoId}
-								/>
+								<Input id="videoId" placeholder="abc-123" bind:value={videoId} />
 							</div>
 						</div>
 					</div>

@@ -1,5 +1,5 @@
 import { writable, derived } from 'svelte/store';
-import { AuthService } from '../services/auth.service';
+import { authService } from '../services/auth.service';
 import type { AuthState, LoginCredentials } from '$lib/interfaces';
 import type { User } from '$lib/interfaces';
 
@@ -7,12 +7,12 @@ import type { User } from '$lib/interfaces';
 // El estado inicial se reconstruye desde localStorage (solo en el cliente).
 // En SSR, comienza como no autenticado.
 
-function getInitialState(): AuthState {
+async function getInitialState(): Promise<AuthState> {
 	if (typeof localStorage === 'undefined') {
 		return { user: null, isAuthenticated: false, isLoading: false };
 	}
-	const user = AuthService.getUserProfile();
-	const token = AuthService.getToken();
+	const user = await authService.getUserProfile();
+	const token = authService.getToken();
 	return {
 		user,
 		isAuthenticated: token !== null && user !== null,
@@ -22,8 +22,8 @@ function getInitialState(): AuthState {
 
 // ─── Store interno ────────────────────────────────────────────────────────────
 
-function createAuthStore() {
-	const { subscribe, set, update } = writable<AuthState>(getInitialState());
+async function createAuthStore() {
+	const { subscribe, set, update } = writable<AuthState>(await getInitialState());
 
 	return {
 		subscribe,
@@ -35,7 +35,7 @@ function createAuthStore() {
 		async login(credentials: LoginCredentials): Promise<void> {
 			update((state) => ({ ...state, isLoading: true }));
 			try {
-				const response = await AuthService.login(credentials);
+				const response = await authService.login(credentials);
 				set({
 					user: response.user,
 					isAuthenticated: true,
@@ -51,7 +51,7 @@ function createAuthStore() {
 		 * Cierra la sesión: limpia localStorage y resetea el store.
 		 */
 		async logout(): Promise<void> {
-			await AuthService.logout();
+			await authService.logout();
 			set({ user: null, isAuthenticated: false, isLoading: false });
 		},
 
@@ -60,7 +60,7 @@ function createAuthStore() {
 		 * Útil cuando el usuario edita su perfil.
 		 */
 		updateUser(user: User): void {
-			AuthService.setUserProfile(user);
+			authService.setUserProfile(user);
 			update((state) => ({ ...state, user }));
 		},
 
@@ -68,8 +68,8 @@ function createAuthStore() {
 		 * Reinicializa el store desde localStorage.
 		 * Llamar en el layout raíz al montar la app en el cliente.
 		 */
-		initialize(): void {
-			set(getInitialState());
+		async initialize(): Promise<void> {
+			set(await getInitialState());
 		},
 
 		setLoading(loading: boolean): void {
@@ -81,7 +81,7 @@ function createAuthStore() {
 // ─── Exports públicos ─────────────────────────────────────────────────────────
 
 /** Store principal con todo el estado de autenticación */
-export const authStore = createAuthStore();
+export const authStore = await createAuthStore();
 
 /** Usuario actual (null si no está autenticado) */
 export const currentUser = derived(authStore, ($store) => $store.user);

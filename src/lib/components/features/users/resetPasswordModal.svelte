@@ -3,7 +3,7 @@
 	import { Button, Heading } from '$lib/components/ui';
 	import { XIcon, KeyIcon } from '$lib/icons/outline';
 	import { fade, fly } from 'svelte/transition';
-	import { UsersService } from '$lib/services/users.service';
+	import { userService } from '$lib/services';
 
 	interface Props {
 		isOpen: boolean;
@@ -31,7 +31,7 @@
 		error = null;
 
 		try {
-			await UsersService.resetPassword(user.id, password);
+			await userService.resetPassword(user.id, password);
 			password = '';
 			onSuccess();
 			onClose();

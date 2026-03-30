@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import CourseCard from '$lib/components/features/course/courseCard.svelte';
-	import { EnrollmentsService, CoursesService } from '$lib/services';
+	import { enrollmentService, courseService } from '$lib/services';
 	import { currentUser } from '$lib/stores/auth.store';
 	import type { Enrollment, Course } from '$lib/interfaces';
 	import { Button, Heading, MainLayout } from '$lib/components/ui';
@@ -16,14 +16,14 @@
 	onMount(async () => {
 		try {
 			// Load my enrollments
-			const enrollmentsResponse = await EnrollmentsService.getMyEnrollments();
+			const enrollmentsResponse = await enrollmentService.getMyEnrollments();
 			myEnrollments = enrollmentsResponse.data;
 
 			// Derive enrolled courses from enrollments
 			enrolledCourses = myEnrollments.map((e) => e.course).filter((c): c is Course => !!c);
 
 			// Load recommended courses
-			const recommendedResponse = await CoursesService.getAll({ limit: 3, status: 'PUBLISHED' });
+			const recommendedResponse = await courseService.getAll({ limit: 3, status: 'PUBLISHED' });
 			recommendedCourses = recommendedResponse.data;
 		} catch (error) {
 			console.error('Error loading dashboard data:', error);
@@ -52,17 +52,17 @@
 	{:else}
 		<div class="space-y-8">
 			<div class="">
-				<Heading class="mb-2 " level="h3">
+				<span class="mb-2 text-3xl font-bold text-light-black">
 					{getGreetingMessage()},
 					<span class="text-light-three dark:text-dark-two">
 						{$currentUser?.full_name || 'Estudiante'}</span
 					>
-				</Heading>
+				</span>
 			</div>
 
 			{#if enrolledCourses.length > 0}
 				<div>
-					<h2 class="mb-6 text-2xl font-bold text-light-black">Mis Cursos</h2>
+					<Heading class="mb-6" level="h3">Mis Cursos</Heading>
 					<div class="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-5">
 						{#each enrolledCourses as course (course.id)}
 							{@const enrollment = myEnrollments.find((e) => e.course_id === course.id)}

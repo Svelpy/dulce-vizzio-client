@@ -4,16 +4,22 @@
 	import { currentUser, authStore } from '$lib/stores/auth.store';
 	import { UserIcon, BookIcon, HomeDotIcon, UsersIcon, Menu2Icon, XIcon } from '$lib/icons/outline';
 	import logoApp from '$lib/assets/images/logo_dulce_vizzio.png';
+	import { onMount } from 'svelte';
+	import { sidebarState } from '$lib/stores';
+	import { redirect } from '$lib/utils';
+	import { DropdownMenu } from '.';
+	import { LogoutIcon } from '$lib/icons/solid';
 
 	import { canAccessPath } from '$lib/constants/roles';
 
 	let mobileMenuOpen: boolean = $state(false);
 	let userMenuOpen: boolean = $state(false);
+	let widthMenu: number = $state(190);
 
 	interface MenuItem {
 		label: string;
 		href: string;
-		icon: Component<any>;
+		icon: Component;
 	}
 
 	const originalMenuItems: MenuItem[] = [
@@ -35,6 +41,40 @@
 		originalAdminItems.filter((item) => canAccessPath($currentUser?.role, item.href))
 	);
 
+	onMount(() => {
+		document.addEventListener('click', handleClickOutside);
+		return () => {
+			document.removeEventListener('click', handleClickOutside);
+		};
+	});
+
+	const toggleVisibility = () => {
+		if ($sidebarState === 'hidden') {
+			$sidebarState = 'icon-only';
+		} else {
+			$sidebarState = 'hidden';
+		}
+	};
+
+	const optionsMenu = [
+		{
+			id: 'profile',
+			label: 'Mi Perfil',
+			icon: UserIcon,
+			action: () => {
+				redirect('/app/profile');
+			}
+		},
+		{
+			id: 'logout',
+			label: 'Cerrar Sesión',
+			icon: LogoutIcon,
+			action: () => {
+				handleLogout();
+			},
+			divider: true
+		}
+	];
 	const handleLogout = async () => {
 		await authStore.logout();
 		redirect('/auth/sign-in');
@@ -58,24 +98,6 @@
 		const target = e.target as HTMLElement;
 		if (!target.closest('.user-menu-container')) {
 			userMenuOpen = false;
-		}
-	};
-
-	import { onMount } from 'svelte';
-	import { sidebarState } from '$lib/stores';
-	import { redirect } from '$lib/utils';
-	onMount(() => {
-		document.addEventListener('click', handleClickOutside);
-		return () => {
-			document.removeEventListener('click', handleClickOutside);
-		};
-	});
-
-	const toggleVisibility = () => {
-		if ($sidebarState === 'hidden') {
-			$sidebarState = 'icon-only';
-		} else {
-			$sidebarState = 'hidden';
 		}
 	};
 </script>
@@ -113,57 +135,35 @@
 					<img src={logoApp} alt="Logo Dulce Vizzio" class="h-10 w-auto" />
 				</div>
 			</div>
-
-			<!-- Desktop Navigation -->
-			<!-- <div class="hidden items-center gap-6 md:flex">
-				{#each navLinks as link}
-					<a
-						href={link.href}
-						class="text-sm font-medium transition-colors {isActive(link.href)
-							? 'border-b-2 border-light-one font-extrabold text-light-one dark:border-dark-one dark:text-dark-one'
-							: 'font-medium text-light-one hover:text-light-one_d dark:text-dark-one dark:hover:text-dark-one_d'}"
-					>
-						{link.label}
-					</a>
-				{/each}
-			</div> -->
-
-			<!-- Search Bar (Desktop) -->
-			<!-- <div class="mx-8 hidden max-w-md flex-1 lg:block">
-				<form onsubmit={handleSearch} class="relative">
-					<input
-						type="text"
-						bind:value={searchQuery}
-						placeholder="¿Qué quieres aprender hoy?"
-						class="w-full rounded-full bg-light-one px-4 py-2 pl-10 text-sm text-light-black placeholder-gray-400 focus:ring-2 focus:ring-rose-400 focus:outline-none"
-					/>
-					<svg
-						class="absolute top-2.5 left-3 h-5 w-5 text-gray-400"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-						/>
-					</svg>
-				</form>
-			</div> -->
-			<!-- Right Side: User Menu -->
 			<div class="flex items-center gap-4">
 				{#if $currentUser}
 					<div class="user-menu-container relative">
-						<button
+						<div>
+							<button
+								onclick={() => toggleUserMenu()}
+								aria-label="Acciones"
+								class="flex h-10 w-10 items-center justify-center rounded-full bg-light-five text-light-one transition-all hover:bg-light-five_d"
+							>
+								<UserIcon class="h-5 w-5" />
+							</button>
+							<div class="relative">
+								<DropdownMenu
+									text={$currentUser.full_name}
+									isOpen={userMenuOpen}
+									options={optionsMenu}
+									width={widthMenu}
+									class="absolute top-full right-0 mt-2"
+								/>
+							</div>
+						</div>
+						<!-- <button
 							onclick={toggleUserMenu}
 							class="flex h-10 w-10 items-center justify-center rounded-full bg-light-five text-light-one transition-all hover:bg-light-five_d"
 						>
 							<UserIcon class="h-5 w-5" />
-						</button>
+						</button> -->
 
-						{#if userMenuOpen}
+						<!-- {#if userMenuOpen}
 							<div
 								class="absolute right-0 mt-3 w-56 origin-top-right rounded-xl border border-light-five bg-light-two p-2 shadow-2xl ring-1 ring-black/5"
 							>
@@ -195,7 +195,7 @@
 									Cerrar Sesión
 								</button>
 							</div>
-						{/if}
+						{/if} -->
 					</div>
 				{:else}
 					<a
@@ -231,7 +231,7 @@
 							item.href
 						)
 							? 'bg-light-five text-light-one shadow-sm'
-							: 'text-gray-400 hover:bg-light-five hover:text-light-one'}"
+							: 'text-light-one hover:bg-light-five hover:text-light-one'}"
 					>
 						<item.icon class="h-5 w-5" />
 						<span>{item.label}</span>

@@ -1,5 +1,5 @@
 import { ErrorType } from '$lib/interfaces';
-import { AppError, AuthService, errorService } from '$lib/services';
+import { AppError, authService, errorService } from '$lib/services';
 import { API_CONFIG, defaultHeaders } from './api.config';
 
 interface RequestOptions {
@@ -7,9 +7,9 @@ interface RequestOptions {
 	customHeaders?: HeadersInit;
 }
 
-class ApiAvicor {
+class ApiDulceVizzio {
 	// Método para construir headers con autenticación
-	private buildHeaders(options: RequestOptions = {}): HeadersInit {
+	private async buildHeaders(options: RequestOptions = {}): Promise<HeadersInit> {
 		const headers: HeadersInit = { ...defaultHeaders };
 
 		// Agregar headers customizados si existen
@@ -20,7 +20,7 @@ class ApiAvicor {
 		// Agregar token de autorización si es requerido
 		if (options.requireAuth !== false) {
 			// Por defecto requiere auth
-			const token = AuthService.getToken();
+			const token = await authService.getToken();
 			if (token) {
 				(headers as Record<string, string>).Authorization = `Bearer ${token}`;
 			} else if (options.requireAuth === true) {
@@ -43,7 +43,7 @@ class ApiAvicor {
 		const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
 
 		try {
-			const headers = this.buildHeaders(options);
+			const headers = await this.buildHeaders(options);
 			const isFormData = data instanceof FormData;
 
 			// Si el cuerpo es FormData, eliminamos el Content-Type para que el navegador
@@ -74,7 +74,7 @@ class ApiAvicor {
 
 				// Si es error 401, limpiar sesión completa (token + perfil)
 				if (response.status === 401) {
-					AuthService.clearSession();
+					authService.clearSession();
 				}
 
 				throw new AppError(
@@ -136,4 +136,4 @@ class ApiAvicor {
 	}
 }
 
-export const apiAvicor = new ApiAvicor();
+export const apiDulceVizzio = new ApiDulceVizzio();

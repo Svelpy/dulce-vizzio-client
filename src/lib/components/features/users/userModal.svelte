@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button, Input, Select, BlurOverlay } from '$lib/components/ui';
-	import { UsersService } from '$lib/services/users.service';
+	import { userService } from '$lib/services';
 	import type { CreateUserRequest, UpdateUserRequest, User, UserRole } from '$lib/interfaces';
 	import { fade, fly } from 'svelte/transition';
 
@@ -64,7 +64,7 @@
 					phone_number: formData.phone_number || undefined,
 					birth_date: formData.birth_date || undefined
 				};
-				await UsersService.update(user.id, requestData);
+				await userService.update(user.id, requestData);
 			} else {
 				const requestData: CreateUserRequest = {
 					...formData,
@@ -72,13 +72,16 @@
 					phone_number: formData.phone_number || undefined,
 					birth_date: formData.birth_date || undefined
 				};
-				await UsersService.create(requestData);
+				await userService.create(requestData);
 			}
-			
+
 			onSuccess();
 			onClose();
 		} catch (err: unknown) {
-			const errorMsg = err instanceof Error ? err.message : `Error al ${isEdit ? 'actualizar' : 'crear'} el usuario`;
+			const errorMsg =
+				err instanceof Error
+					? err.message
+					: `Error al ${isEdit ? 'actualizar' : 'crear'} el usuario`;
 			error = errorMsg;
 			console.error(`Error ${isEdit ? 'updating' : 'creating'} user:`, err);
 		} finally {
@@ -120,9 +123,18 @@
 			role="dialog"
 		>
 			<div class="modal-header">
-				<h2 style="color: {colors.taupe};">{isEdit ? 'Actualizar Usuario' : 'Crear Nuevo Usuario'}</h2>
+				<h2 style="color: {colors.taupe};">
+					{isEdit ? 'Actualizar Usuario' : 'Crear Nuevo Usuario'}
+				</h2>
 				<button class="close-btn" onclick={onClose} aria-label="Cerrar">
-					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<svg
+						width="24"
+						height="24"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+					>
 						<line x1="18" y1="6" x2="6" y2="18"></line>
 						<line x1="6" y1="6" x2="18" y2="18"></line>
 					</svg>
@@ -168,21 +180,13 @@
 
 					<div class="form-group">
 						<label for="username">Username (Opcional)</label>
-						<Input
-							id="username"
-							placeholder="juanperez"
-							bind:value={formData.username}
-						/>
+						<Input id="username" placeholder="juanperez" bind:value={formData.username} />
 					</div>
 
 					{#if !isEdit}
 						<div class="form-group">
 							<label for="role">Rol *</label>
-							<Select
-								id="role"
-								bind:value={formData.role}
-								required
-							>
+							<Select id="role" bind:value={formData.role} required>
 								{#each roles as role (role.value)}
 									<option value={role.value}>{role.label}</option>
 								{/each}
@@ -191,11 +195,7 @@
 					{:else}
 						<div class="form-group">
 							<label for="role-display">Rol</label>
-							<Input
-								id="role-display"
-								value={formData.role}
-								disabled
-							/>
+							<Input id="role-display" value={formData.role} disabled />
 						</div>
 					{/if}
 
@@ -210,11 +210,7 @@
 
 					<div class="form-group">
 						<label for="birth_date">Fecha de Nacimiento (Opcional)</label>
-						<Input
-							id="birth_date"
-							type="date"
-							bind:value={formData.birth_date}
-						/>
+						<Input id="birth_date" type="date" bind:value={formData.birth_date} />
 					</div>
 				</div>
 
@@ -234,7 +230,7 @@
 						disabled={loading}
 						style="background-color: {colors.rose};"
 					>
-						{loading ? 'Procesando...' : (isEdit ? 'Actualizar' : 'Crear Usuario')}
+						{loading ? 'Procesando...' : isEdit ? 'Actualizar' : 'Crear Usuario'}
 					</Button>
 				</div>
 			</form>
@@ -249,7 +245,9 @@
 		width: 100%;
 		max-width: 600px;
 		padding: 2rem;
-		box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+		box-shadow:
+			0 20px 25px -5px rgba(0, 0, 0, 0.1),
+			0 10px 10px -5px rgba(0, 0, 0, 0.04);
 		position: relative;
 		margin: 1rem;
 	}

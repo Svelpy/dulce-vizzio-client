@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { EnrollmentsService } from '$lib/services/enrollments.service';
+	import { enrollmentService } from '$lib/services';
 	import type { EnrollmentStatus, EnrollmentListResponse } from '$lib/interfaces';
 	import { Pagination, Button } from '$lib/components/ui';
 	import EnrollmentFilters from '$lib/components/features/enrollments/EnrollmentFilters.svelte';
@@ -32,7 +32,7 @@
 				status: selectedStatus || undefined
 			};
 
-			enrollmentsData = await EnrollmentsService.getMyEnrollments(filters);
+			enrollmentsData = await enrollmentService.getMyEnrollments(filters);
 		} catch (err: unknown) {
 			const errorMessage = err instanceof Error ? err.message : 'Error al cargar tus cursos';
 			error = errorMessage;

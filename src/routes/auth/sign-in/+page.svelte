@@ -1,30 +1,19 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
-	import { AuthService } from '$lib/services/auth.service';
-	import { authStore } from '$lib/stores/auth.store';
+	import { page } from '$app/state';
+	import { authService } from '$lib/services/auth.service';
+	import { redirect } from '$lib/utils';
 	import { onMount } from 'svelte';
-	import { get } from 'svelte/store';
 
-	let email = '';
-	let password = '';
-	let showPassword = false;
-	let loading = false;
-	let errorMessage = '';
-
-	// Paleta de colores Dulce Vizzio
-	const colors = {
-		cream: '#f4e9c4',
-		taupe: '#a78d70',
-		rose: '#ce7576',
-		grey: '#cccccc',
-		gold: '#b58b3a'
-	};
+	let email: string = $state('');
+	let password: string = $state('');
+	let showPassword: boolean = $state(false);
+	let loading: boolean = $state(false);
+	let errorMessage: string = $state('');
 
 	onMount(() => {
-		if (AuthService.isAuthenticated()) {
-			const redirectTo = get(page).url.searchParams.get('redirectTo') || '/app/dashboard';
-			goto(redirectTo);
+		if (authService.isAuthenticated()) {
+			const redirectTo = page.url.searchParams.get('redirectTo') || '/app/dashboard';
+			redirect(redirectTo);
 		}
 	});
 
@@ -34,9 +23,11 @@
 		loading = true;
 
 		try {
-			await authStore.login({ email, password });
-			const redirectTo = get(page).url.searchParams.get('redirectTo') || '/app/dashboard';
-			goto(redirectTo);
+			console.log('Email:', email);
+			console.log('Password:', password);
+			await authService.login({ email, password });
+			const redirectTo = page.url.searchParams.get('redirectTo') || '/app/dashboard';
+			redirect(redirectTo);
 		} catch (error: any) {
 			console.error('Error en login:', error);
 			errorMessage = error?.message || 'Credenciales inválidas. Por favor, intenta nuevamente.';
@@ -60,35 +51,32 @@
 	/>
 </svelte:head>
 
-<div class="login-container" style="background-color: {colors.cream};">
+<div class="login-container">
 	<div class="login-card">
 		<!-- Decoración superior -->
-		<div class="top-decoration" style="background-color: {colors.gold};"></div>
+		<div class="top-decoration"></div>
 
 		<div class="card-content">
 			<!-- Logo y Branding -->
 			<div class="branding">
-				<div class="logo-circle" style="border-color: {colors.gold};">
+				<div class="logo-circle">
 					<svg viewBox="0 0 100 100" class="monogram">
-						<text x="20" y="65" font-size="45" fill={colors.taupe} class="letter-d">D</text>
-						<text x="45" y="75" font-size="45" fill={colors.gold} class="letter-v">V</text>
+						<text x="20" y="65" font-size="45" class="letter-d">D</text>
+						<text x="45" y="75" font-size="45" class="letter-v">V</text>
 					</svg>
 				</div>
-				<h1 class="brand-name" style="color: {colors.gold};">Dulce Vizzio</h1>
-				<p class="brand-subtitle" style="color: {colors.taupe};">Academia de Repostería</p>
+				<h1 class="brand-name">Dulce Vizzio</h1>
+				<p class="brand-subtitle">Academia de Repostería</p>
 			</div>
 
 			<!-- Formulario -->
-			<form on:submit={handleSubmit} class="login-form">
+			<form onsubmit={handleSubmit} class="login-form">
 				<!-- Email -->
 				<div class="form-group">
-					<label for="email" class="form-label" style="color: {colors.taupe};">
-						Correo Electrónico
-					</label>
+					<label for="email" class="form-label"> Correo Electrónico </label>
 					<div class="input-wrapper">
 						<svg
 							class="input-icon"
-							style="color: {colors.grey};"
 							width="18"
 							height="18"
 							viewBox="0 0 24 24"
@@ -107,20 +95,16 @@
 							required
 							disabled={loading}
 							class="form-input"
-							style="border-color: {colors.grey};"
 						/>
 					</div>
 				</div>
 
 				<!-- Password -->
 				<div class="form-group">
-					<label for="password" class="form-label" style="color: {colors.taupe};">
-						Contraseña
-					</label>
+					<label for="password" class="form-label"> Contraseña </label>
 					<div class="input-wrapper">
 						<svg
 							class="input-icon"
-							style="color: {colors.grey};"
 							width="18"
 							height="18"
 							viewBox="0 0 24 24"
@@ -139,11 +123,10 @@
 							required
 							disabled={loading}
 							class="form-input"
-							style="border-color: {colors.grey};"
 						/>
 						<button
 							type="button"
-							on:click={togglePasswordVisibility}
+							onclick={togglePasswordVisibility}
 							class="password-toggle"
 							disabled={loading}
 							aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
@@ -156,7 +139,6 @@
 									fill="none"
 									stroke="currentColor"
 									stroke-width="2"
-									style="color: {colors.taupe};"
 								>
 									<path
 										d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
@@ -171,7 +153,6 @@
 									fill="none"
 									stroke="currentColor"
 									stroke-width="2"
-									style="color: {colors.taupe};"
 								>
 									<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
 									<circle cx="12" cy="12" r="3" />
@@ -188,18 +169,13 @@
 
 				<!-- Error Message -->
 				{#if errorMessage}
-					<div class="error-message" style="color: {colors.rose};">
+					<div class="error-message">
 						{errorMessage}
 					</div>
 				{/if}
 
 				<!-- Submit Button -->
-				<button
-					type="submit"
-					class="submit-button"
-					style="background-color: {colors.rose};"
-					disabled={loading}
-				>
+				<button type="submit" class="submit-button" disabled={loading}>
 					{#if loading}
 						<span>Ingresando...</span>
 					{:else}

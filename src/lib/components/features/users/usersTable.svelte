@@ -9,6 +9,8 @@
 		TableCell,
 		DropdownMenu
 	} from '$lib/components/ui';
+	import { LockIcon, ShieldIcon } from '$lib/icons/solid';
+	import { PencilIcon, TrashIcon } from '$lib/icons/outline';
 
 	interface Props {
 		users: User[];
@@ -32,7 +34,7 @@
 			{
 				id: 'edit',
 				label: 'Editar',
-				icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
+				icon: PencilIcon,
 				action: () => {
 					onAction?.(user);
 					openMenuId = null;
@@ -41,7 +43,7 @@
 			{
 				id: 'delete',
 				label: 'Eliminar',
-				icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`,
+				icon: TrashIcon,
 				action: () => {
 					onDelete?.(user);
 					openMenuId = null;
@@ -50,7 +52,7 @@
 			{
 				id: 'reset-password',
 				label: 'Restablecer Contraseña',
-				icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`,
+				icon: LockIcon,
 				action: () => {
 					onResetPassword?.(user);
 					openMenuId = null;
@@ -59,7 +61,7 @@
 			{
 				id: 'change-role',
 				label: 'Cambiar Rol',
-				icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`,
+				icon: ShieldIcon,
 				action: () => {
 					onUpdateRole?.(user);
 					openMenuId = null;
@@ -166,7 +168,7 @@
 									<DropdownMenu
 										isOpen={openMenuId === user.id}
 										options={getMenuOptions(user)}
-										width="140px"
+										width={140}
 										class="absolute top-full right-0 mt-2"
 									/>
 								</div>

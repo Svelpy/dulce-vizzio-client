@@ -1,25 +1,113 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import CourseCard from '$lib/components/features/course/courseCard.svelte';
-	import { Input, Select, Pagination, Button } from '$lib/components/ui';
-	import { CoursesService } from '$lib/services';
+	import {
+		Input,
+		Select,
+		Pagination,
+		Button,
+		MainLayout,
+		DropdownMenu,
+		ModalConfirm,
+		Heading
+	} from '$lib/components/ui';
+	import { courseService } from '$lib/services';
 	import { authStore } from '$lib/stores';
 	import { Role } from '$lib/constants/roles';
 	import { COURSE_CATEGORIES, COURSE_DIFFICULTIES } from '$lib/data';
 	import CreateEnrollmentModal from '$lib/components/features/enrollments/CreateEnrollmentModal.svelte';
-	import type { Course, CourseDifficulty, CourseFilters } from '$lib/interfaces';
-	import { debounce, redirect } from '$lib/utils';
-	import { FiltersIcon, PlusIcon, BookIcon } from '$lib/icons/outline';
-	import { CreateCourseModal, CreateLessonModal } from '$lib/components/features/course';
+	import type {
+		Course,
+		CourseDifficulty,
+		CourseFilters,
+		CreateCourseRequest,
+		UpdateCourseRequest,
+		DropdownOption
+	} from '$lib/interfaces';
+	import { debounce, redirect, alert } from '$lib/utils';
+	import {
+		FiltersIcon,
+		PlusIcon,
+		BookIcon,
+		PencilIcon,
+		DotsVerticalIcon,
+		TrashIcon
+	} from '$lib/icons/outline';
+	import { CourseModal, CreateLessonModal } from '$lib/components/features/course';
+	import { CourseCardSkeleton } from '$lib/components/skeletons/course';
 
 	let courses: Course[] = $state([]);
 	let loading = $state(true);
 	let totalCourses = $state(0);
 	let totalPages = $state(2000);
 	let isModalOpen = $state(false);
-	let isCreateCourseModalOpen = $state(false);
+	let isCourseModalOpen = $state(false);
 	let isCreateLessonModalOpen = $state(false);
 	let selectedCourse = $state<Course | null>(null);
+	let isSubmittingCourse = $state(false);
+	let openDropdownId = $state<string | null>(null);
+
+	function getCourseOptions(course: Course): DropdownOption[] {
+		return [
+			{
+				id: 'enroll',
+				label: 'Inscribir Alumno',
+				icon: PlusIcon,
+				action: () => openEnrollmentModal(course)
+			},
+			{
+				id: 'edit',
+				label: 'Editar Curso',
+				icon: PencilIcon,
+				action: () => openEditCourseModal(course)
+			},
+			{
+				id: 'lesson',
+				label: 'Agregar Lección',
+				icon: BookIcon,
+				action: () => openCreateLessonModal(course)
+			},
+			{
+				id: 'delete',
+				label: 'Eliminar Curso',
+				icon: TrashIcon,
+				action: () => openDeleteModal(course),
+				divider: true,
+				variant: 'destructive'
+			}
+		];
+	}
+
+	function toggleDropdown(id: string) {
+		openDropdownId = openDropdownId === id ? null : id;
+	}
+
+	let isDeleteModalOpen = $state(false);
+	let isDeletingCourse = $state(false);
+
+	function openDeleteModal(course: Course) {
+		selectedCourse = course;
+		isDeleteModalOpen = true;
+	}
+
+	async function handleDeleteConfirm() {
+		if (!selectedCourse) return;
+		isDeletingCourse = true;
+		console.log('selectedCourse 01', selectedCourse);
+		try {
+			await courseService.delete(selectedCourse.id);
+			console.log('selectedCourse', selectedCourse);
+			courses = courses.filter((c) => c.id !== selectedCourse!.id);
+			alert('success', 'Curso eliminado exitosamente');
+			isDeleteModalOpen = false;
+		} catch (error) {
+			console.error('Error deleting course:', error);
+			alert('error', 'Ocurrió un error al eliminar el curso');
+		} finally {
+			selectedCourse = null;
+			isDeletingCourse = false;
+		}
+	}
 
 	function openEnrollmentModal(course: Course) {
 		selectedCourse = course;
@@ -27,7 +115,37 @@
 	}
 
 	function openCreateCourseModal() {
-		isCreateCourseModalOpen = true;
+		selectedCourse = null;
+		isCourseModalOpen = true;
+	}
+
+	function openEditCourseModal(course: Course) {
+		selectedCourse = course;
+		isCourseModalOpen = true;
+	}
+
+	async function handleCourseSubmit(data: CreateCourseRequest | UpdateCourseRequest) {
+		isSubmittingCourse = true;
+		try {
+			if (selectedCourse) {
+				// Update
+				const updatedCourse = await courseService.update(selectedCourse.id, data);
+				courses = courses.map((c) => (c.id === updatedCourse.id ? updatedCourse : c));
+				alert('success', 'Curso actualizado exitosamente');
+			} else {
+				// Create
+				const newCourse = await courseService.create(data as CreateCourseRequest);
+				courses = [newCourse, ...courses];
+				alert('success', 'Curso creado exitosamente');
+			}
+			isCourseModalOpen = false;
+			selectedCourse = null;
+		} catch (error) {
+			console.error('Error saving course:', error);
+			alert('error', 'Ocurrió un error al guardar el curso');
+		} finally {
+			isSubmittingCourse = false;
+		}
 	}
 
 	function openCreateLessonModal(course: Course) {
@@ -65,11 +183,10 @@
 			if (selectedCategory) filters.category = selectedCategory;
 			if (selectedDifficulty) filters.difficulty = selectedDifficulty;
 
-			const response = await CoursesService.getAll(filters);
+			const response = await courseService.getAll(filters);
 			courses = response.data;
 			totalCourses = response.total;
 			totalPages = response.pages;
-			console.log('courses', courses);
 		} catch (error) {
 			console.error('Error loading courses:', error);
 		} finally {
@@ -121,158 +238,131 @@
 	};
 </script>
 
-<div class="space-y-8">
-	<div class="rounded-xl border border-light-four p-6">
-		<div class="mb-4 flex items-center gap-2">
-			<FiltersIcon class="text-taupe h-5 w-5" />
-			<h2 class="text-lg font-bold text-light-black">Filtros</h2>
-		</div>
-
-		<div class="grid gap-4 md:grid-cols-3">
+<MainLayout
+	title="Cursos"
+	description="Administra los cursos de la plataforma"
+	noIndex={true}
+	class="container mx-auto"
+>
+	<div class="space-y-8">
+		<!-- ─── Page Header ─── -->
+		<div class="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
 			<div>
-				<Input
-					bind:value={searchQuery}
-					placeholder="Buscar cursos..."
-					oninput={handleSearchInput}
-					onkeydown={(e) => {
-						if (e.key === 'Enter') handleSearch();
-					}}
-				></Input>
+				<Heading level="h4">Cursos</Heading>
 			</div>
 
-			<div>
-				<Select
-					bind:value={selectedCategory}
-					onchange={() => handleCategoryChange(selectedCategory)}
+			{#if $authStore.user?.role === Role.SUPERADMIN || $authStore.user?.role === Role.ADMIN}
+				<Button
+					variant="primary"
+					class="px-5 py-2.5 shadow-lg shadow-rose-500/20"
+					onclick={openCreateCourseModal}
 				>
-					<option value="">Todas las categorías</option>
-					{#each categories as category, index (index)}
-						<option value={category}>{category}</option>
-					{/each}
-				</Select>
-			</div>
-
-			<div>
-				<Select
-					bind:value={selectedDifficulty}
-					onchange={() => handleDifficultyChange(selectedDifficulty)}
-				>
-					{#each difficulties as difficulty, index (index)}
-						<option value={difficulty.value}>{difficulty.label}</option>
-					{/each}
-				</Select>
-			</div>
+					{#snippet leftIcon()}
+						<PlusIcon class="mr-2 size-5" />
+					{/snippet}
+					<span>Nuevo Curso</span>
+				</Button>
+			{/if}
 		</div>
 
-		<div class="mt-4 flex gap-3">
-			<Button variant="outline" onclick={handleResetFilters}>Limpiar Filtros</Button>
-		</div>
-	</div>
-
-	<!-- Results Count -->
-	<div class="flex items-center justify-between">
-		<p class="text-gray-600">
-			Mostrando <span class="font-semibold text-gray-900">{courses.length}</span> de
-			<span class="font-semibold text-gray-900">{totalCourses}</span> cursos
-		</p>
-
-		{#if $authStore.user?.role === Role.SUPERADMIN || $authStore.user?.role === Role.ADMIN}
-			<Button
-				variant="primary"
-				class="bg-stone-900 px-6 font-bold text-white hover:bg-stone-800"
-				onclick={openCreateCourseModal}
-			>
-				<PlusIcon class="mr-2 size-5" />
-				Agregar Curso
-			</Button>
-		{/if}
-	</div>
-
-	<!-- Courses Grid -->
-	{#if loading}
-		<div class="flex justify-center py-12">
-			<div
-				class="border-rose h-12 w-12 animate-spin rounded-full border-4 border-t-transparent"
-			></div>
-		</div>
-	{:else if courses.length > 0}
-		<div class="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
-			{#each courses as course (course.id)}
-				<div class="flex flex-col gap-2">
-					<CourseCard {course} onclick={() => handleCourseClick(course.slug)} />
-					{#if $authStore.user?.role === Role.SUPERADMIN || $authStore.user?.role === Role.ADMIN}
-						<div class="flex gap-2">
-							<Button
-								variant="outline"
-								class="flex-1 border-stone-200 text-stone-600 hover:border-rose-300 hover:bg-stone-50"
-								onclick={(e) => {
-									e.stopPropagation();
-									openEnrollmentModal(course);
-								}}
-							>
-								Inscribir
-							</Button>
-							<Button
-								variant="outline"
-								class="flex-1 border-stone-200 text-stone-600 hover:border-blue-300 hover:bg-stone-50"
-								onclick={(e) => {
-									e.stopPropagation();
-									openCreateLessonModal(course);
-								}}
-							>
-								<BookIcon class="mr-1 size-4" />
-								Lección
-							</Button>
-						</div>
-					{/if}
+		<!-- ─── Filters & Search ─── -->
+		<div class="mb-8">
+			<div class="flex flex-col gap-4 md:flex-row md:items-center">
+				<!-- Search -->
+				<div class="flex-1">
+					<Input
+						bind:value={searchQuery}
+						placeholder="Buscar cursos por título..."
+						oninput={handleSearchInput}
+						onkeydown={(e) => {
+							if (e.key === 'Enter') handleSearch();
+						}}
+					/>
 				</div>
-			{/each}
+
+				<!-- Filters -->
+				<div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+					<div class="min-w-[180px]">
+						<Select
+							bind:value={selectedCategory}
+							onchange={() => handleCategoryChange(selectedCategory)}
+						>
+							<option value="">Todas las categorías</option>
+							{#each categories as category, index (index)}
+								<option value={category}>{category}</option>
+							{/each}
+						</Select>
+					</div>
+
+					<div class="min-w-[180px]">
+						<Select
+							bind:value={selectedDifficulty}
+							onchange={() => handleDifficultyChange(selectedDifficulty)}
+						>
+							{#each difficulties as difficulty, index (index)}
+								<option value={difficulty.value}>{difficulty.label}</option>
+							{/each}
+						</Select>
+					</div>
+
+					<!-- Reset Button -->
+					<Button
+						variant="outline"
+						class="h-[42px] px-4"
+						onclick={handleResetFilters}
+						title="Limpiar filtros"
+					>
+						<span class="hidden sm:inline">Limpiar Filtros</span>
+						<span class="flex items-center gap-2 sm:hidden">
+							<FiltersIcon class="size-4" /> Limpiar
+						</span>
+					</Button>
+				</div>
+			</div>
 		</div>
 
-		<CreateEnrollmentModal
-			isOpen={isModalOpen}
-			initialCourse={selectedCourse}
-			onClose={() => {
-				isModalOpen = false;
-				selectedCourse = null;
-			}}
-			onSuccess={() => {
-				isModalOpen = false;
-				selectedCourse = null;
-				loadCourses();
-			}}
-		/>
+		<!-- ─── Content Grid ─── -->
+		{#if loading}
+			<!-- Loading state -->
+			<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+				{#each Array(8) as _, index (index)}
+					<CourseCardSkeleton />
+				{/each}
+			</div>
+		{:else if courses.length > 0}
+			<!-- Courses Grid -->
+			<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+				{#each courses as course (course.id)}
+					<CourseCard {course} onclick={() => handleCourseClick(course.slug)}>
+						{#snippet actions()}
+							{#if $authStore.user?.role === Role.SUPERADMIN || $authStore.user?.role === Role.ADMIN}
+								<div class="action-dropdown-container relative">
+									<button
+										class="flex size-9 items-center justify-center rounded-full bg-stone-900/40 text-white backdrop-blur-md transition-all hover:bg-stone-900/60 dark:bg-stone-900/60 dark:hover:bg-stone-900"
+										onclick={(e) => {
+											e.stopPropagation();
+											toggleDropdown(course.id);
+										}}
+									>
+										<DotsVerticalIcon class="size-5" />
+									</button>
+									<div class="relative">
+										<DropdownMenu
+											isOpen={openDropdownId === course.id}
+											options={getCourseOptions(course)}
+											width={190}
+											class="absolute top-full right-0 z-50 mt-2 border border-stone-100 shadow-xl dark:border-stone-800"
+										/>
+									</div>
+								</div>
+							{/if}
+						{/snippet}
+					</CourseCard>
+				{/each}
+			</div>
 
-		<CreateCourseModal
-			isOpen={isCreateCourseModalOpen}
-			onClose={() => {
-				isCreateCourseModalOpen = false;
-			}}
-			onSuccess={() => {
-				isCreateCourseModalOpen = false;
-				loadCourses();
-			}}
-		/>
-
-		{#if selectedCourse}
-			<CreateLessonModal
-				isOpen={isCreateLessonModalOpen}
-				courseId={selectedCourse.id}
-				onClose={() => {
-					isCreateLessonModalOpen = false;
-					selectedCourse = null;
-				}}
-				onSuccess={() => {
-					isCreateLessonModalOpen = false;
-					selectedCourse = null;
-					loadCourses();
-				}}
-			/>
-		{/if}
-
-		<!-- Pagination -->
-		{#if totalPages > 1}
-			<div class="flex justify-center">
+			<!-- Pagination Footer -->
+			<div>
 				<Pagination
 					{currentPage}
 					{totalPages}
@@ -281,13 +371,83 @@
 					onPageChange={handlePageChange}
 				/>
 			</div>
+		{:else}
+			<!-- Empty State -->
+			<div
+				class="flex flex-col items-center justify-center rounded-3xl border border-dashed border-stone-300 bg-stone-50/50 px-6 py-24 text-center dark:border-stone-700 dark:bg-stone-900/20"
+			>
+				<div
+					class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm dark:bg-stone-800"
+				>
+					<span class="text-3xl">🔍</span>
+				</div>
+				<h3 class="mb-2 text-xl font-bold text-stone-900 dark:text-white">
+					No se encontraron cursos
+				</h3>
+				<p class="mb-6 max-w-sm text-sm font-medium text-stone-500 dark:text-stone-400">
+					No hay cursos que coincidan con tu búsqueda actual. Intenta ajustar los filtros de
+					categoría o dificultad.
+				</p>
+				<button
+					class="rounded-xl bg-stone-900 px-6 py-2.5 text-sm font-bold text-white transition-all hover:bg-stone-800 dark:bg-white dark:text-stone-900 dark:hover:bg-stone-200"
+					onclick={handleResetFilters}
+				>
+					Limpiar Todos los Filtros
+				</button>
+			</div>
 		{/if}
-	{:else}
-		<div class="border-grey/30 rounded-xl border bg-white p-12 text-center">
-			<div class="mb-4 text-6xl">🔍</div>
-			<h3 class="mb-2 text-xl font-bold text-gray-900">No se encontraron cursos</h3>
-			<p class="mb-6 text-gray-600">Intenta ajustar tus filtros de búsqueda</p>
-			<Button variant="outline" onclick={handleResetFilters}>Limpiar Filtros</Button>
-		</div>
+	</div>
+
+	<!-- Modals -->
+	<CreateEnrollmentModal
+		isOpen={isModalOpen}
+		initialCourse={selectedCourse}
+		onClose={() => {
+			isModalOpen = false;
+			selectedCourse = null;
+		}}
+		onSuccess={() => {
+			isModalOpen = false;
+			selectedCourse = null;
+			loadCourses();
+		}}
+	/>
+
+	<CourseModal
+		isOpen={isCourseModalOpen}
+		course={selectedCourse}
+		isSubmitting={isSubmittingCourse}
+		onClose={() => {
+			isCourseModalOpen = false;
+			selectedCourse = null;
+		}}
+		onSubmit={handleCourseSubmit}
+	/>
+
+	{#if selectedCourse}
+		<CreateLessonModal
+			isOpen={isCreateLessonModalOpen}
+			courseId={selectedCourse.id}
+			onClose={() => {
+				isCreateLessonModalOpen = false;
+				selectedCourse = null;
+			}}
+			onSuccess={() => {
+				isCreateLessonModalOpen = false;
+				selectedCourse = null;
+				loadCourses();
+			}}
+		/>
 	{/if}
-</div>
+
+	<ModalConfirm
+		isOpen={isDeleteModalOpen}
+		message={`¿Estás seguro que deseas eliminar el curso "${selectedCourse?.title}"? Esta acción no se puede deshacer.`}
+		onConfirm={handleDeleteConfirm}
+		onCancel={() => {
+			isDeleteModalOpen = false;
+			selectedCourse = null;
+		}}
+		loading={isDeletingCourse}
+	/>
+</MainLayout>

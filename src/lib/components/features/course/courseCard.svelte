@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui';
-	import { BookIcon, ClockIcon, UsersIcon } from '$lib/icons/outline';
+	import { BookIcon, ClockIcon, UsersIcon, ChefHatIcon } from '$lib/icons/outline';
 	import { StarIcon } from '$lib/icons/solid';
 	import type { Course } from '$lib/interfaces';
 	import { formatDuration } from '$lib/utils';
@@ -13,6 +13,7 @@
 		priceVisible?: boolean;
 		difficultyVisible?: boolean;
 		contentVisible?: boolean;
+		actions?: import('svelte').Snippet;
 	}
 
 	let {
@@ -22,7 +23,8 @@
 		onclick,
 		priceVisible = true,
 		difficultyVisible = true,
-		contentVisible = true
+		contentVisible = true,
+		actions
 	}: Props = $props();
 
 	const handleCtaClick = (e: MouseEvent) => {
@@ -37,10 +39,21 @@
 			window.open(whatsappURL, '_blank');
 		}
 	};
+	const getDifficultyLevel = (): number => {
+		if (course.difficulty === 'ADVANCED') return 3;
+		if (course.difficulty === 'INTERMEDIATE') return 2;
+		return 1;
+	};
+
+	const difficultyLabels: Record<string, string> = {
+		BEGINNER: 'Principiante',
+		INTERMEDIATE: 'Intermedio',
+		ADVANCED: 'Avanzado'
+	};
 </script>
 
 <div
-	class="group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-light-five/30 bg-white transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl dark:border-dark-five dark:bg-dark-two"
+	class="group relative flex h-full cursor-pointer flex-col rounded-2xl border border-light-five/30 bg-white transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl dark:border-dark-five dark:bg-dark-two"
 	role="button"
 	tabindex="0"
 	{onclick}
@@ -51,7 +64,7 @@
 		}
 	}}
 >
-	<div class="relative h-48 min-h-48 w-full overflow-hidden">
+	<div class="relative h-48 min-h-48 w-full overflow-hidden rounded-t-2xl">
 		{#if course.cover_image_url}
 			<img
 				src={course.cover_image_url}
@@ -64,13 +77,6 @@
 			</div>
 		{/if}
 
-		{#if difficultyVisible}
-			<div class="absolute top-3 left-3">
-				<span class="rounded-full px-3 py-1 text-xs font-semibold">
-					{course.difficulty}
-				</span>
-			</div>
-		{/if}
 		{#if priceVisible}
 			<div class="absolute right-3 bottom-3">
 				<span class="rounded-full bg-light-three px-3 py-1.5 text-sm font-bold text-white">
@@ -80,13 +86,30 @@
 			</div>
 		{/if}
 	</div>
+	{#if actions}
+		<div class="absolute top-3 right-3 z-10">
+			{@render actions()}
+		</div>
+	{/if}
 
 	{#if contentVisible}
 		<div class="flex flex-1 flex-col p-4">
 			<div class="flex-1">
-				<p class="text-taupe mb-2 text-xs font-medium tracking-wide uppercase">
-					{course.category}
-				</p>
+				<div class="mb-2 flex items-center justify-between">
+					<p class="text-taupe text-xs font-medium tracking-wide uppercase">
+						{course.category}
+					</p>
+					{#if difficultyVisible}
+						<div
+							class="flex items-center gap-0.5 text-rose-500"
+							title={difficultyLabels[course.difficulty]}
+						>
+							{#each Array.from({ length: getDifficultyLevel() }, (_, i) => i) as i (i)}
+								<ChefHatIcon class="size-4" />
+							{/each}
+						</div>
+					{/if}
+				</div>
 
 				<h3
 					class="group-hover:text-rose mb-2 line-clamp-2 text-lg font-bold text-gray-900 transition-colors"

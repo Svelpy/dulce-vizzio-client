@@ -63,7 +63,7 @@
 				<div class="border-t border-slate-200 bg-slate-50 p-6">
 					<h4 class="mb-4 text-base font-semibold text-slate-900">Materiales de la lección</h4>
 					<ul class="flex flex-col gap-2">
-						{#each lesson.materials as material}
+						{#each lesson.materials as material, index (index)}
 							<li>
 								<a
 									href={material.url}
@@ -72,11 +72,11 @@
 									class="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3 font-medium text-violet-600 transition-all hover:border-violet-500 hover:shadow-md hover:shadow-violet-500/10"
 								>
 									<span>{material.title}</span>
-									<span
+									<!-- <span
 										class="rounded bg-slate-100 px-2 py-1 text-xs font-semibold tracking-wide text-slate-600 uppercase"
 									>
 										{material.type}
-									</span>
+									</span> -->
 								</a>
 							</li>
 						{/each}
@@ -86,11 +86,3 @@
 		</div>
 	</div>
 {/if}
-
-<style>
-	@media (max-width: 768px) {
-		.animate-in.slide-in-from-bottom-4 {
-			animation: none;
-		}
-	}
-</style>

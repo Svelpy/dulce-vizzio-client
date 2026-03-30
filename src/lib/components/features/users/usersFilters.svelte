@@ -1,234 +1,85 @@
 <script lang="ts">
-	import { Input, Select } from '$lib/components/ui';
 	import type { UserRole } from '$lib/interfaces';
 
 	interface Props {
 		searchQuery: string;
 		selectedRole: UserRole | null;
-		isActiveFilter: boolean | null;
 		onSearchChange: (value: string) => void;
 		onRoleChange: (value: UserRole | null) => void;
-		onActiveChange: (value: boolean | null) => void;
 	}
 
 	let {
 		searchQuery = $bindable(),
 		selectedRole = $bindable(),
-		isActiveFilter = $bindable(),
 		onSearchChange,
-		onRoleChange,
-		onActiveChange
+		onRoleChange
 	}: Props = $props();
 
-	const colors = {
-		cream: '#f4e9c4',
-		taupe: '#a78d70',
-		rose: '#ce7576',
-		grey: '#cccccc',
-		gold: '#b58b3a'
-	};
+	const roles = [
+		{ value: '', label: 'Todos los Roles' },
+		{ value: 'SUPERADMIN', label: 'Super Administrador' },
+		{ value: 'ADMIN', label: 'Administrador' },
+		{ value: 'MODERATOR', label: 'Moderador' },
+		{ value: 'USER', label: 'Usuario' }
+	];
 
-	function handleRoleChange(event: Event) {
-		const target = event.target as HTMLSelectElement;
-		const value = target.value;
+	function handleRoleChange(value: string) {
 		const role = value === '' ? null : (value as UserRole);
 		selectedRole = role;
 		onRoleChange(role);
 	}
-
-	function handleActiveChange() {
-		// Toggle entre true, false, null
-		if (isActiveFilter === null) {
-			isActiveFilter = true;
-		} else if (isActiveFilter === true) {
-			isActiveFilter = false;
-		} else {
-			isActiveFilter = null;
-		}
-		onActiveChange(isActiveFilter);
-	}
 </script>
 
-<div class="filters-container">
+<div class="flex flex-col md:flex-row gap-4 mb-6 items-end">
 	<!-- Search Input -->
-	<div class="search-wrapper">
-		<div class="search-icon">
-			<svg
-				width="20"
-				height="20"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-			>
-				<circle cx="11" cy="11" r="8"></circle>
-				<path d="m21 21-4.35-4.35"></path>
-			</svg>
+	<div class="flex-1 w-full">
+		<label for="search" class="block text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2">
+			Buscar
+		</label>
+		<div class="relative group">
+			<div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-stone-400 group-focus-within:text-rose-400 transition-colors">
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<circle cx="11" cy="11" r="8"></circle>
+					<path d="m21 21-4.35-4.35"></path>
+				</svg>
+			</div>
+			<input
+				id="search"
+				type="text"
+				bind:value={searchQuery}
+				oninput={(e) => onSearchChange((e.target as HTMLInputElement).value)}
+				placeholder="Buscar por nombre, email o usuario..."
+				class="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-stone-100 rounded-xl focus:outline-none focus:border-rose-200 focus:ring-4 focus:ring-rose-50 transition-all text-sm shadow-sm"
+			/>
 		</div>
-		<input
-			type="text"
-			bind:value={searchQuery}
-			oninput={(e) => onSearchChange((e.target as HTMLInputElement).value)}
-			placeholder="Buscar usuarios..."
-			class="search-input"
-		/>
 	</div>
 
-	<!-- Filters Row -->
-	<div class="filters-row">
-		<!-- Role Filter -->
-		<div class="filter-group">
-			<label for="role-filter" class="filter-label" style="color: {colors.taupe};">Rol</label>
+	<!-- Role Filter -->
+	<div class="w-full md:w-64">
+		<label for="role" class="block text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2">
+			Filtrar por Rol
+		</label>
+		<div class="relative group">
 			<select
-				id="role-filter"
+				id="role"
 				bind:value={selectedRole}
-				onchange={handleRoleChange}
-				class="filter-select"
-				style="border-color: {colors.taupe};"
+				onchange={(e) => handleRoleChange((e.target as HTMLSelectElement).value)}
+				class="w-full appearance-none pl-4 pr-10 py-2.5 bg-white border-2 border-stone-100 rounded-xl focus:outline-none focus:border-rose-200 focus:ring-4 focus:ring-rose-50 transition-all text-sm shadow-sm cursor-pointer"
 			>
-				<option value="">Todos</option>
-				<option value="SUPERADMIN">SUPERADMIN</option>
-				<option value="ADMIN">ADMIN</option>
-				<option value="MODERATOR">MODERATOR</option>
-				<option value="USER">USER</option>
+				{#each roles as role (role.value)}
+					<option value={role.value}>{role.label}</option>
+				{/each}
 			</select>
-		</div>
-
-		<!-- Active/Inactive Toggle -->
-		<div class="filter-group">
-			<label class="filter-label" style="color: {colors.taupe};">Activo/Inactivo</label>
-			<button
-				type="button"
-				onclick={handleActiveChange}
-				class="toggle-button"
-				style="background-color: {isActiveFilter === null
-					? colors.grey
-					: isActiveFilter
-						? '#10b981'
-						: colors.rose};"
-			>
-				<span class="toggle-slider" class:active={isActiveFilter !== false}></span>
-			</button>
-			<span class="toggle-label" style="color: {colors.taupe};">
-				{isActiveFilter === null ? 'Todos' : isActiveFilter ? 'Activo' : 'Inactivo'}
-			</span>
+			<div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-stone-400">
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="m6 9 6 6 6-6"></path>
+				</svg>
+			</div>
 		</div>
 	</div>
 </div>
 
 <style>
-	.filters-container {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-		margin-bottom: 1.5rem;
-	}
-
-	.search-wrapper {
-		position: relative;
-		width: 100%;
-	}
-
-	.search-icon {
-		position: absolute;
-		left: 1rem;
-		top: 50%;
-		transform: translateY(-50%);
-		color: #9ca3af;
-		pointer-events: none;
-	}
-
-	.search-input {
-		width: 100%;
-		padding: 0.75rem 1rem 0.75rem 3rem;
-		border: 2px solid #e5e7eb;
-		border-radius: 0.75rem;
-		font-size: 1rem;
-		transition: all 0.2s ease;
-		background-color: white;
-	}
-
-	.search-input:focus {
-		outline: none;
-		border-color: #a78d70;
-		box-shadow: 0 0 0 3px rgba(167, 141, 112, 0.1);
-	}
-
-	.filters-row {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 1rem;
-		align-items: flex-end;
-	}
-
-	.filter-group {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-		min-width: 200px;
-	}
-
-	.filter-label {
-		font-size: 0.875rem;
-		font-weight: 600;
-	}
-
-	.filter-select {
-		padding: 0.625rem 1rem;
-		border: 2px solid;
-		border-radius: 0.75rem;
-		font-size: 0.875rem;
-		background-color: white;
-		cursor: pointer;
-		transition: all 0.2s ease;
-	}
-
-	.filter-select:focus {
-		outline: none;
-		box-shadow: 0 0 0 3px rgba(167, 141, 112, 0.1);
-	}
-
-	.toggle-button {
-		position: relative;
-		width: 3.5rem;
-		height: 2rem;
-		border-radius: 9999px;
-		border: none;
-		cursor: pointer;
-		transition: background-color 0.3s ease;
-	}
-
-	.toggle-slider {
-		position: absolute;
-		top: 0.25rem;
-		left: 0.25rem;
-		width: 1.5rem;
-		height: 1.5rem;
-		background-color: white;
-		border-radius: 50%;
-		transition: transform 0.3s ease;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-	}
-
-	.toggle-slider.active {
-		transform: translateX(1.5rem);
-	}
-
-	.toggle-label {
-		font-size: 0.875rem;
-		font-weight: 600;
-		margin-top: 0.25rem;
-	}
-
-	/* Responsive */
-	@media (max-width: 640px) {
-		.filters-row {
-			flex-direction: column;
-		}
-
-		.filter-group {
-			width: 100%;
-			min-width: unset;
-		}
-	}
+	/* Custom styles if needed, but keeping it simple with Tailwind-like logic for now */
 </style>
+

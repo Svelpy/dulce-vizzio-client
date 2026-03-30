@@ -3,11 +3,10 @@
 		name: string;
 		role: string;
 		comment: string;
-		rating: number;
 		avatarUrl?: string;
 	}
 
-	let { name, role, comment, rating, avatarUrl }: Props = $props();
+	let { name, role, comment, avatarUrl }: Props = $props();
 </script>
 
 <div class="p-6">

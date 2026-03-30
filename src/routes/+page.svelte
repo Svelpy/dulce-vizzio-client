@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { Button, MainLayout } from '$lib/components/ui';
 	import CourseCard from '$lib/components/features/course/courseCard.svelte';
 	import CategoryCard from '$lib/components/features/course/categoryCard.svelte';
 	import TestimonialCard from '$lib/components/features/course/testimonialCard.svelte';
-	import { CoursesService } from '$lib/services';
+	import { courseService } from '$lib/services';
 	import type { Course } from '$lib/interfaces';
 	import { onMount } from 'svelte';
 	import { FacebookIcon, InstagramIcon, TikTokIcon } from '$lib/icons/outline';
@@ -63,7 +62,7 @@
 
 	onMount(async () => {
 		try {
-			const response = await CoursesService.getAll({ limit: 6, status: 'PUBLISHED' });
+			const response = await courseService.getAll({ limit: 6, status: 'PUBLISHED' });
 			featuredCourses = response.data;
 		} catch (error) {
 			console.error('Error loading courses:', error);

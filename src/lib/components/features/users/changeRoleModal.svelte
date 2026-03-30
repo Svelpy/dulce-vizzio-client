@@ -3,7 +3,7 @@
 	import { Button, Heading } from '$lib/components/ui';
 	import { XIcon, UsersIcon } from '$lib/icons/outline';
 	import { fade, fly } from 'svelte/transition';
-	import { UsersService } from '$lib/services/users.service';
+	import { userService } from '$lib/services';
 
 	interface Props {
 		isOpen: boolean;
@@ -14,13 +14,21 @@
 
 	let { isOpen, user, onClose, onSuccess }: Props = $props();
 
-	let selectedRole = $state<UserRole | ''>('');
+	let selectedRole: UserRole | '' = $state('');
 	let loading = $state(false);
 	let error = $state<string | null>(null);
 
 	const roles: { value: UserRole; label: string; description: string }[] = [
-		{ value: 'ADMIN' as UserRole, label: 'Administrador', description: 'Gestión total del sistema' },
-		{ value: 'MODERATOR' as UserRole, label: 'Moderador', description: 'Supervisión y gestión limitada' },
+		{
+			value: 'ADMIN' as UserRole,
+			label: 'Administrador',
+			description: 'Gestión total del sistema'
+		},
+		{
+			value: 'MODERATOR' as UserRole,
+			label: 'Moderador',
+			description: 'Supervisión y gestión limitada'
+		},
 		{ value: 'USER' as UserRole, label: 'Usuario', description: 'Acceso estándar al sistema' }
 	];
 
@@ -38,7 +46,7 @@
 		error = null;
 
 		try {
-			await UsersService.updateRole(user.id, selectedRole);
+			await userService.updateRole(user.id, selectedRole);
 			onSuccess();
 			onClose();
 		} catch (err: unknown) {
@@ -99,7 +107,7 @@
 				{/if}
 
 				<div class="space-y-4">
-					{#each roles as role}
+					{#each roles as role, index (index)}
 						<label
 							class="flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-all hover:bg-gray-50 {selectedRole ===
 							role.value
@@ -111,7 +119,7 @@
 								name="role"
 								value={role.value}
 								bind:group={selectedRole}
-								class="mt-1 h-4 w-4 text-[#a78d70] border-gray-300 focus:ring-[#a78d70]"
+								class="mt-1 h-4 w-4 border-gray-300 text-[#a78d70] focus:ring-[#a78d70]"
 							/>
 							<div class="flex flex-col">
 								<span class="font-semibold text-gray-900">{role.label}</span>
