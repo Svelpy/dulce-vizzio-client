@@ -67,3 +67,5 @@ export { default as WorldIcon } from './worldIcon.svelte';
 export { default as Menu2Icon } from './menu2Icon.svelte';
 export { default as ChefHatIcon } from './chefHatIcon.svelte';
 export { default as PhoneIcon } from './phoneIcon.svelte';
+export { default as SidebarCollapseLeftIcon } from './sidebarCollapseLeftIcon.svelte';
+export { default as SidebarCollapseRightIcon } from './sidebarCollapseRightIcon.svelte';

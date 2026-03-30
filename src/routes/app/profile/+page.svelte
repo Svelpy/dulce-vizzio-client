@@ -4,22 +4,13 @@
 	import { Button, Input, MainLayout } from '$lib/components/ui';
 	//import { UserService } from '$lib/services';
 	import { alert } from '$lib/utils';
-	import {
-		MailIcon,
-		UserIcon,
-		PencilIcon,
-		CheckIcon,
-		XIcon,
-		ClockIcon,
-		PhoneIcon
-	} from '$lib/icons/outline';
+	import { MailIcon, UserIcon, CheckIcon, ClockIcon, PhoneIcon } from '$lib/icons/outline';
 	import { CalendarIcon, LockIcon, CameraIcon, ShieldIcon } from '$lib/icons/solid';
 	import { userService } from '$lib/services';
 
-	// State
 	let isEditing = $state(false);
+	let isEditingPassword = $state(false);
 	let isSubmitting = $state(false);
-	let activeTab = $state('personal'); // 'personal' | 'security'
 
 	// Avatar
 	let isUploadingAvatar = $state(false);
@@ -103,6 +94,7 @@
 			await userService.resetPassword($currentUser!.id, passwordData.newPassword);
 			alert('success', 'Contraseña actualizada correctamente');
 			passwordData = { currentPassword: '', newPassword: '', confirmPassword: '' };
+			isEditingPassword = false;
 		} catch (error) {
 			console.error('Error changing password:', error);
 			alert('error', 'Error al cambiar la contraseña');
@@ -172,476 +164,449 @@
 <MainLayout
 	title="Mi Perfil"
 	description="Gestiona tu información personal y seguridad"
-	class="container mx-auto"
+	class=" container mx-auto"
 >
-	<div class="">
-		<!-- ─── Hero Banner ─── -->
+	<div class="mx-auto my-4 flex w-full max-w-[1200px] flex-col gap-6 px-2 sm:px-6">
+		<!-- ─── Header Area ─── -->
 		<div
-			class="relative h-40 overflow-hidden bg-linear-to-br from-stone-900 via-stone-800 to-stone-700"
+			class="flex flex-col items-center gap-6 bg-transparent py-4 sm:flex-row sm:justify-between sm:gap-8"
 		>
-			<!-- Mesh gradient overlay -->
-			<div
-				class="absolute inset-0 opacity-40 mix-blend-overlay"
-				style="background: radial-gradient(ellipse at 20% 50%, #ce7576 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, #a78d70 0%, transparent 50%), radial-gradient(ellipse at 60% 80%, #b58b3a 0%, transparent 45%);"
-			></div>
-			<div class="relative z-10 mx-auto flex h-full max-w-7xl items-end px-6 py-6 lg:px-8"></div>
-		</div>
-
-		<!-- ─── Main Grid ─── -->
-		<div class="relative z-20 mx-auto -mt-10 max-w-7xl px-4 sm:px-6 lg:px-8">
-			<div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
-				<!-- ══ LEFT: Identity Card ══ -->
-				<aside
-					class="flex flex-col items-center gap-6 rounded-3xl border border-light-four bg-light-one_d p-8 shadow-xl shadow-stone-200/50 lg:col-span-4 lg:p-6 xl:p-8 dark:border-stone-800 dark:bg-stone-900 dark:shadow-none"
+			<div class="flex flex-col items-center gap-6 sm:flex-row sm:items-center">
+				<!-- Avatar -->
+				<div
+					class="relative flex h-32 w-32 shrink-0 overflow-hidden rounded-full border border-stone-200/50 bg-stone-100 sm:h-[110px] sm:w-[110px] dark:border-stone-700 dark:bg-stone-800"
 				>
-					<!-- Hidden file input -->
-					<input
-						bind:this={fileInputEl}
-						type="file"
-						accept="image/*"
-						class="hidden"
-						onchange={handleAvatarChange}
-					/>
-
-					<!-- Avatar area -->
-					<div class="relative -mt-16">
+					{#if avatarPreview || $currentUser?.avatar_url}
+						<img
+							src={avatarPreview ?? $currentUser?.avatar_url}
+							alt={$currentUser?.full_name}
+							class="h-full w-full object-cover"
+						/>
+					{:else}
 						<div
-							class="relative h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-stone-100 shadow-xl dark:border-stone-800 dark:bg-stone-800"
+							class="flex h-full w-full items-center justify-center bg-[#EFD68B] text-[40px] font-medium text-stone-800"
 						>
-							{#if avatarPreview || $currentUser?.avatar_url}
-								<img
-									src={avatarPreview ?? $currentUser?.avatar_url}
-									alt={$currentUser?.full_name}
-									class="h-full w-full object-cover"
-								/>
-							{:else}
-								<div
-									class="flex h-full w-full items-center justify-center bg-gradient-to-br from-stone-100 to-stone-200 text-4xl font-bold text-stone-400 dark:from-stone-800 dark:to-stone-900"
-								>
-									{$currentUser?.full_name?.charAt(0).toUpperCase() || 'U'}
-								</div>
-							{/if}
-
-							{#if isUploadingAvatar}
-								<div
-									class="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-								>
-									<!-- Tailwind Spinner -->
-									<div
-										class="h-8 w-8 animate-spin rounded-full border-[3px] border-white/30 border-t-white"
-									></div>
-								</div>
-							{/if}
+							{$currentUser?.full_name?.substring(0, 2).toUpperCase() || 'U'}
 						</div>
+					{/if}
 
-						<button
-							type="button"
-							class="absolute right-1 bottom-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-gradient-to-br from-rose-500 to-rose-600 text-white shadow-md shadow-rose-500/40 transition-transform hover:scale-110 active:scale-95 disabled:pointer-events-none disabled:opacity-50 dark:border-stone-800"
-							onclick={triggerAvatarUpload}
-							disabled={isUploadingAvatar}
-							title="Cambiar foto de perfil"
+					{#if isUploadingAvatar}
+						<div
+							class="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm"
 						>
-							<CameraIcon class="size-4" />
+							<div
+								class="h-5 w-5 animate-spin rounded-full border-2 border-white/50 border-t-white"
+							></div>
+						</div>
+					{/if}
+				</div>
+
+				<!-- Hidden file input -->
+				<input
+					bind:this={fileInputEl}
+					type="file"
+					accept="image/*"
+					class="hidden"
+					onchange={handleAvatarChange}
+				/>
+
+				<!-- Info Details -->
+				<div class="flex flex-col items-center text-center sm:items-start sm:text-left">
+					<div class="flex items-center gap-3">
+						<h1 class="text-[28px] font-medium tracking-tight text-stone-900 dark:text-white">
+							{$currentUser?.full_name}
+						</h1>
+						<button
+							class="mt-1 flex size-6 items-center justify-center rounded-full text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600 dark:hover:bg-stone-800"
+							onclick={triggerAvatarUpload}
+							title="Cambiar foto de perfil"
+							disabled={isUploadingAvatar}
+						>
+							<CameraIcon class="size-3.5" />
 						</button>
 					</div>
-
-					<!-- Name & role -->
-					<div class="w-full text-center">
-						<h2 class="mb-1 text-xl leading-tight font-bold text-stone-900 dark:text-white">
-							{$currentUser?.full_name}
-						</h2>
-						<p class="mb-3 text-sm font-medium text-stone-500 dark:text-stone-400">
-							@{$currentUser?.username}
-						</p>
-
-						<div
-							class="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-gradient-to-br from-rose-50 to-orange-50 px-3 py-1 text-xs font-bold tracking-wider text-rose-700 uppercase dark:border-rose-900/50 dark:from-rose-500/10 dark:to-orange-500/10 dark:text-rose-400"
-						>
-							<ShieldIcon class="size-3" />
-							<span>{$currentUser?.role}</span>
-						</div>
-					</div>
-
-					<!-- Status chips -->
-					<div class="flex w-full flex-wrap justify-center gap-2">
-						<div
-							class="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-stone-100 px-3 py-1 text-xs font-medium text-stone-600 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300"
-						>
-							<div class="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-							<span>Cuenta activa</span>
-						</div>
-						<div
-							class="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-stone-100 px-3 py-1 text-xs font-medium text-stone-600 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300"
-						>
-							<div class="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
-							<span>Verificado</span>
-						</div>
-					</div>
-
-					<!-- Meta info -->
 					<div
-						class="flex w-full flex-col gap-3 border-t border-stone-100 pt-6 dark:border-stone-800"
+						class="mt-1 flex flex-wrap items-center justify-center gap-4 text-[13px] text-stone-500 sm:justify-start"
 					>
-						<div class="flex items-start gap-4">
-							<div
-								class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-stone-400 dark:bg-stone-800"
-							>
-								<MailIcon class="size-5" />
-							</div>
-							<div class="flex min-w-0 flex-col justify-center">
-								<span class="text-[0.65rem] font-bold tracking-wider text-stone-400 uppercase"
-									>Correo</span
-								>
-								<span class="truncate text-sm font-medium text-stone-700 dark:text-stone-200"
-									>{$currentUser?.email}</span
-								>
-							</div>
+						<div class="flex items-center gap-1.5">
+							<ClockIcon class="size-3.5" />
+							<span>Miembro desde {formatDate($currentUser?.created_at || '')}</span>
 						</div>
+						<div class="flex items-center gap-1.5">
+							<MailIcon class="size-3.5" />
+							<span>{$currentUser?.email}</span>
+						</div>
+					</div>
+				</div>
+			</div>
 
-						{#if $currentUser?.phone_number}
-							<div class="flex items-start gap-4">
-								<div
-									class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-stone-400 dark:bg-stone-800"
-								>
-									<PhoneIcon class="size-5" />
+			<!-- Quick Actions -->
+			<div class="mt-2 flex shrink-0 items-center gap-2.5 sm:mt-0">
+				<Button
+					class="h-[32px] rounded-[4px] border-none bg-[#5361D4] px-3 text-[13px] font-medium text-white shadow-none hover:bg-[#4652B6]"
+					onclick={() => (isEditing = true)}
+				>
+					Editar perfil
+				</Button>
+			</div>
+		</div>
+
+		<!-- ─── Main Grid Layout ─── -->
+		<div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+			<!-- ══ Lado Izquierdo (Ancho) ══ -->
+			<div class="flex flex-col gap-6 lg:col-span-8">
+				<!-- Tarjeta Principal: Información Personal -->
+				<div
+					class="flex flex-col overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-800 dark:bg-stone-900"
+				>
+					<!-- Header -->
+					<div
+						class="flex items-center justify-between border-b border-stone-100 px-6 py-4 dark:border-stone-800"
+					>
+						<h2
+							class="flex items-center gap-2 text-base font-semibold text-stone-900 dark:text-white"
+						>
+							Información Personal <LockIcon class="size-3 text-stone-400" />
+						</h2>
+						<!-- {#if !isEditing}
+							<Button
+								variant="outline"
+								class="h-[28px] rounded-[4px] border-stone-200 bg-white px-3 text-[12px] font-medium"
+								onclick={() => (isEditing = true)}
+							>
+								Ver todo
+							</Button>
+						{/if} -->
+					</div>
+
+					<!-- Form / View Content -->
+					<div class="p-6">
+						{#if isEditing}
+							<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+								<!-- Inputs -->
+								<div class="flex flex-col gap-1.5">
+									<!-- svelte-ignore a11y_label_has_associated_control -->
+									<label class="text-[12px] font-semibold text-stone-600 dark:text-stone-400"
+										>Nombre Completo</label
+									>
+									<Input
+										bind:value={formData.full_name}
+										placeholder="Nombre completo"
+										icon={UserIcon}
+										class="h-[36px] rounded-[4px] text-sm"
+									/>
 								</div>
-								<div class="flex min-w-0 flex-col justify-center">
-									<span class="text-[0.65rem] font-bold tracking-wider text-stone-400 uppercase"
-										>Teléfono</span
+								<div class="flex flex-col gap-1.5">
+									<!-- svelte-ignore a11y_label_has_associated_control -->
+									<label class="text-[12px] font-semibold text-stone-600 dark:text-stone-400"
+										>Usuario</label
 									>
-									<span class="truncate text-sm font-medium text-stone-700 dark:text-stone-200"
-										>{$currentUser.phone_number}</span
+									<Input
+										bind:value={formData.username}
+										placeholder="Nombre de usuario"
+										icon={UserIcon}
+										class="h-[36px] rounded-[4px] text-sm"
+									/>
+								</div>
+								<div class="flex flex-col gap-1.5">
+									<!-- svelte-ignore a11y_label_has_associated_control -->
+									<label class="text-[12px] font-semibold text-stone-600 dark:text-stone-400"
+										>Correo Electrónico</label
 									>
+									<Input
+										bind:value={formData.email}
+										type="email"
+										placeholder="correo@ejemplo.com"
+										icon={MailIcon}
+										class="h-[36px] rounded-[4px] text-sm"
+									/>
+								</div>
+								<div class="flex flex-col gap-1.5">
+									<!-- svelte-ignore a11y_label_has_associated_control -->
+									<label class="text-[12px] font-semibold text-stone-600 dark:text-stone-400"
+										>Teléfono</label
+									>
+									<Input
+										bind:value={formData.phone_number}
+										type="tel"
+										placeholder="+..."
+										icon={PhoneIcon}
+										class="h-[36px] rounded-[4px] text-sm"
+									/>
+								</div>
+								<div class="col-span-1 flex flex-col gap-1.5 sm:col-span-2">
+									<!-- svelte-ignore a11y_label_has_associated_control -->
+									<label class="text-[12px] font-semibold text-stone-600 dark:text-stone-400"
+										>Fecha de Nacimiento</label
+									>
+									<Input
+										bind:value={formData.birth_date}
+										type="date"
+										icon={CalendarIcon}
+										class="h-[36px] rounded-[4px] text-sm"
+									/>
+								</div>
+							</div>
+
+							<!-- Acciones Form -->
+							<div
+								class="mt-8 flex justify-end gap-3 border-t border-stone-100 pt-5 dark:border-stone-800"
+							>
+								<Button
+									variant="outline"
+									class="h-[32px] rounded-[4px] px-4 text-[13px] font-medium"
+									onclick={cancelEdit}
+									disabled={isSubmitting}
+								>
+									Cancelar
+								</Button>
+								<Button
+									class="h-[32px] rounded-[4px] bg-stone-900 px-4 text-[13px] font-medium text-white hover:bg-stone-800"
+									onclick={handleUpdateProfile}
+									disabled={isSubmitting}
+									loading={isSubmitting}
+								>
+									Guardar Cambios
+								</Button>
+							</div>
+						{:else}
+							<!-- Vista Modo Lista Estilo "My Tasks" -->
+							<div class="flex flex-col">
+								<!-- Info Row -->
+								<div
+									class="flex items-center justify-between border-b border-stone-100 py-3 dark:border-stone-800/60"
+								>
+									<div class="flex items-center gap-3">
+										<span class="text-[13px] font-medium text-stone-800 dark:text-stone-200"
+											>{$currentUser?.full_name || 'No especificado'}</span
+										>
+									</div>
+									<div
+										class="rounded-full border border-stone-200/50 bg-stone-100/80 px-2.5 py-0.5 text-[11px] font-medium text-stone-500 dark:border-stone-700/50 dark:bg-stone-800"
+									>
+										Nombre Completo
+									</div>
+								</div>
+
+								<div
+									class="flex items-center justify-between border-b border-stone-100 py-3 dark:border-stone-800/60"
+								>
+									<div class="flex items-center gap-3">
+										<span class="text-[13px] font-medium text-stone-800 dark:text-stone-200"
+											>{$currentUser?.username || 'No especificado'}</span
+										>
+									</div>
+									<div
+										class="rounded-full border border-stone-200/50 bg-stone-100/80 px-2.5 py-0.5 text-[11px] font-medium text-stone-500 dark:border-stone-700/50 dark:bg-stone-800"
+									>
+										Usuario
+									</div>
+								</div>
+
+								<div
+									class="flex items-center justify-between border-b border-stone-100 py-3 dark:border-stone-800/60"
+								>
+									<div class="flex items-center gap-3">
+										<span class="text-[13px] font-medium text-stone-800 dark:text-stone-200"
+											>{$currentUser?.email || 'No especificado'}</span
+										>
+									</div>
+									<div
+										class="rounded-full border border-stone-200/50 bg-stone-100/80 px-2.5 py-0.5 text-[11px] font-medium text-stone-500 dark:border-stone-700/50 dark:bg-stone-800"
+									>
+										Correo
+									</div>
+								</div>
+
+								<div
+									class="flex items-center justify-between border-b border-stone-100 py-3 dark:border-stone-800/60"
+								>
+									<div class="flex items-center gap-3">
+										<span class="text-[13px] font-medium text-stone-800 dark:text-stone-200"
+											>{$currentUser?.phone_number || 'No especificado'}</span
+										>
+									</div>
+									<div
+										class="rounded-full border-[#A8D7C2] bg-[#E7F3ED] bg-stone-100/80 px-2.5 py-0.5 text-[11px] font-medium text-[#468C6A]"
+									>
+										Teléfono
+									</div>
+								</div>
+
+								<div class="flex items-center justify-between py-3">
+									<div class="flex items-center gap-3">
+										<span class="text-[13px] font-medium text-stone-800 dark:text-stone-200"
+											>{$currentUser?.birth_date
+												? formatDate($currentUser?.birth_date)
+												: 'No especificada'}</span
+										>
+									</div>
+									<div
+										class="rounded-full border border-stone-200/50 bg-stone-100/80 px-2.5 py-0.5 text-[11px] font-medium text-stone-500 dark:border-stone-700/50 dark:bg-stone-800"
+									>
+										Nacimiento
+									</div>
 								</div>
 							</div>
 						{/if}
-
-						<div class="flex items-start gap-4">
-							<div
-								class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-stone-400 dark:bg-stone-800"
-							>
-								<ClockIcon class="size-5" />
-							</div>
-							<div class="flex min-w-0 flex-col justify-center">
-								<span class="text-[0.65rem] font-bold tracking-wider text-stone-400 uppercase"
-									>Miembro desde</span
-								>
-								<span class="truncate text-sm font-medium text-stone-700 dark:text-stone-200"
-									>{formatDate($currentUser?.created_at || '')}</span
-								>
-							</div>
-						</div>
 					</div>
-				</aside>
+				</div>
 
-				<!-- ══ RIGHT: Details Panel ══ -->
+				<!-- Tarjeta Secundaria: Cambiar Contraseña -->
 				<div
-					class="flex flex-col overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-xl shadow-stone-200/50 lg:col-span-8 dark:border-stone-800 dark:bg-stone-900 dark:shadow-none"
+					class="mt-2 flex flex-col overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-800 dark:bg-stone-900"
 				>
-					<!-- Tab bar -->
 					<div
-						class="flex gap-2 border-b border-stone-100 bg-stone-50/50 px-2 pt-2 dark:border-stone-800 dark:bg-stone-900/50"
+						class="flex items-center justify-between border-b border-stone-100 px-6 py-4 dark:border-stone-800"
 					>
-						<button
-							class="flex items-center gap-2 rounded-t-xl px-5 py-3 text-sm font-bold transition-all {activeTab ===
-							'personal'
-								? 'mt-px border border-b-0 border-stone-200 bg-white text-rose-500 dark:border-stone-700 dark:bg-stone-900 dark:text-rose-400'
-								: 'text-stone-500 hover:bg-stone-100 hover:text-stone-800 dark:hover:bg-stone-800 dark:hover:text-stone-300'}"
-							onclick={() => (activeTab = 'personal')}
-						>
-							<UserIcon class="size-4" />
-							<span>Información Personal</span>
-						</button>
-						<button
-							class="flex items-center gap-2 rounded-t-xl px-5 py-3 text-sm font-bold transition-all {activeTab ===
-							'security'
-								? 'mt-px border border-b-0 border-stone-200 bg-white text-rose-500 dark:border-stone-700 dark:bg-stone-900 dark:text-rose-400'
-								: 'text-stone-500 hover:bg-stone-100 hover:text-stone-800 dark:hover:bg-stone-800 dark:hover:text-stone-300'}"
-							onclick={() => (activeTab = 'security')}
-						>
-							<LockIcon class="size-4" />
-							<span>Seguridad</span>
-						</button>
+						<h2 class="text-base font-semibold text-stone-900 dark:text-white">
+							Seguridad de la Cuenta
+						</h2>
 					</div>
-
-					<!-- Tab content -->
-					<div class="p-6 sm:p-8">
-						{#if activeTab === 'personal'}
-							<!-- ─── Personal Info Tab ─── -->
+					<div class="p-6">
+						{#if !isEditingPassword}
 							<div
-								class="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center"
+								class="flex flex-col gap-4 rounded-lg border border-stone-100 bg-stone-50/50 p-5 sm:flex-row sm:items-center sm:justify-between dark:border-stone-800 dark:bg-stone-800/20"
 							>
-								<div>
-									<h3 class="mb-1 text-lg font-bold text-stone-900 dark:text-white">
-										Detalles del Perfil
-									</h3>
-									<p class="text-sm text-stone-500 dark:text-stone-400">
-										Actualiza tu información personal
-									</p>
-								</div>
-								{#if !isEditing}
-									<button
-										class="flex items-center gap-2 rounded-xl border-2 border-stone-200 bg-white px-4 py-2.5 text-sm font-bold text-stone-600 transition-all hover:border-stone-300 hover:bg-stone-50 hover:text-stone-900 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:hover:border-stone-600 dark:hover:bg-stone-800 dark:hover:text-white"
-										onclick={() => (isEditing = true)}
-									>
-										<PencilIcon class="size-4" />
-										<span>Editar Perfil</span>
-									</button>
-								{/if}
-							</div>
-
-							<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-								<div class="flex flex-col gap-2">
-									<label
-										class="text-[0.65rem] font-bold tracking-wider text-stone-500 uppercase dark:text-stone-400"
-										>Nombre Completo</label
-									>
-									{#if isEditing}
-										<Input
-											bind:value={formData.full_name}
-											placeholder="Nombre completo"
-											icon={UserIcon}
-										/>
-									{:else}
-										<div
-											class="flex h-[42px] items-center gap-2.5 rounded-xl bg-stone-50 px-3 text-sm font-medium text-stone-900 dark:bg-stone-800/50 dark:text-white"
+								<div class="flex flex-col gap-1.5">
+									<div class="flex items-center gap-2">
+										<LockIcon class="size-4 text-stone-400" />
+										<span class="text-[14px] font-semibold text-stone-800 dark:text-stone-200"
+											>Contraseña de acceso</span
 										>
-											<UserIcon class="size-4 shrink-0 text-stone-400" />
-											<span class="truncate">{formData.full_name || 'No especificado'}</span>
-										</div>
-									{/if}
+									</div>
+									<span class="pl-6 text-[13px] text-stone-500 dark:text-stone-400">
+										Es recomendable usar una contraseña fuerte y única para proteger tu cuenta.
+									</span>
 								</div>
-
-								<div class="flex flex-col gap-2">
-									<label
-										class="text-[0.65rem] font-bold tracking-wider text-stone-500 uppercase dark:text-stone-400"
-										>Usuario</label
-									>
-									{#if isEditing}
-										<Input
-											bind:value={formData.username}
-											placeholder="Nombre de usuario"
-											icon={UserIcon}
-										/>
-									{:else}
-										<div
-											class="flex h-[42px] items-center gap-2.5 rounded-xl bg-stone-50 px-3 text-sm font-medium text-stone-900 dark:bg-stone-800/50 dark:text-white"
-										>
-											<UserIcon class="size-4 shrink-0 text-stone-400" />
-											<span class="truncate">{formData.username || 'No especificado'}</span>
-										</div>
-									{/if}
-								</div>
-
-								<div class="flex flex-col gap-2">
-									<label
-										class="text-[0.65rem] font-bold tracking-wider text-stone-500 uppercase dark:text-stone-400"
-										>Correo Electrónico</label
-									>
-									{#if isEditing}
-										<Input
-											bind:value={formData.email}
-											type="email"
-											placeholder="correo@ejemplo.com"
-											icon={MailIcon}
-										/>
-									{:else}
-										<div
-											class="flex h-[42px] items-center gap-2.5 rounded-xl bg-stone-50 px-3 text-sm font-medium text-stone-900 dark:bg-stone-800/50 dark:text-white"
-										>
-											<MailIcon class="size-4 shrink-0 text-stone-400" />
-											<span class="truncate">{formData.email || 'No especificado'}</span>
-										</div>
-									{/if}
-								</div>
-
-								<div class="flex flex-col gap-2">
-									<label
-										class="text-[0.65rem] font-bold tracking-wider text-stone-500 uppercase dark:text-stone-400"
-										>Teléfono</label
-									>
-									{#if isEditing}
-										<Input
-											bind:value={formData.phone_number}
-											type="tel"
-											placeholder="+591 ..."
-											icon={PhoneIcon}
-										/>
-									{:else}
-										<div
-											class="flex h-[42px] items-center gap-2.5 rounded-xl bg-stone-50 px-3 text-sm font-medium text-stone-900 dark:bg-stone-800/50 dark:text-white"
-										>
-											<PhoneIcon class="size-4 shrink-0 text-stone-400" />
-											<span class="truncate">{formData.phone_number || 'No especificado'}</span>
-										</div>
-									{/if}
-								</div>
-
-								<div class="col-span-1 flex flex-col gap-2 sm:col-span-2">
-									<label
-										class="text-[0.65rem] font-bold tracking-wider text-stone-500 uppercase dark:text-stone-400"
-										>Fecha de Nacimiento</label
-									>
-									{#if isEditing}
-										<Input
-											bind:value={formData.birth_date}
-											type="date"
-											placeholder="Fecha de nacimiento"
-											icon={CalendarIcon}
-										/>
-									{:else}
-										<div
-											class="flex h-[42px] items-center gap-2.5 rounded-xl bg-stone-50 px-3 text-sm font-medium text-stone-900 dark:bg-stone-800/50 dark:text-white"
-										>
-											<CalendarIcon class="size-4 shrink-0 text-stone-400" />
-											<span class="truncate">{formData.birth_date || 'No especificada'}</span>
-										</div>
-									{/if}
-								</div>
-							</div>
-
-							{#if isEditing}
-								<div
-									class="mt-8 flex flex-col-reverse justify-end gap-3 border-t border-stone-100 pt-6 sm:flex-row dark:border-stone-800"
+								<Button
+									variant="outline"
+									class="ml-6 h-[32px] shrink-0 rounded-[4px] border-stone-200 bg-white px-4 text-[13px] font-medium transition-colors hover:bg-stone-50 sm:ml-0 dark:border-stone-700 dark:bg-stone-900 dark:hover:bg-stone-800"
+									onclick={() => (isEditingPassword = true)}
 								>
-									<button
-										class="flex items-center justify-center gap-2 rounded-xl border border-stone-200 bg-white px-5 py-3 text-sm font-bold text-stone-600 transition-all hover:bg-stone-50 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
-										onclick={cancelEdit}
-										disabled={isSubmitting}
-									>
-										<XIcon class="size-4" />
-										<span>Cancelar</span>
-									</button>
-									<button
-										class="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-rose-500 to-rose-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-rose-500/30 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-70 dark:shadow-none"
-										onclick={handleUpdateProfile}
-										disabled={isSubmitting}
-									>
-										{#if isSubmitting}
-											<div
-												class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
-											></div>
-											<span>Guardando...</span>
-										{:else}
-											<CheckIcon class="size-4" />
-											<span>Guardar Cambios</span>
-										{/if}
-									</button>
-								</div>
-							{/if}
-						{:else if activeTab === 'security'}
-							<!-- ─── Security Tab ─── -->
-							<div class="mb-8">
-								<h3 class="mb-1 text-lg font-bold text-stone-900 dark:text-white">
-									Seguridad de la Cuenta
-								</h3>
-								<p class="text-sm text-stone-500 dark:text-stone-400">Mantén tu cuenta protegida</p>
+									Cambiar contraseña
+								</Button>
 							</div>
-
+						{:else}
 							<div class="grid grid-cols-1 gap-8 md:grid-cols-2">
-								<div class="flex flex-col gap-6">
-									<div class="flex flex-col gap-2">
+								<div class="flex flex-col gap-4">
+									<div class="flex flex-col gap-1.5">
 										<!-- svelte-ignore a11y_label_has_associated_control -->
-										<label
-											class="text-[0.65rem] font-bold tracking-wider text-stone-500 uppercase dark:text-stone-400"
+										<label class="text-[12px] font-semibold text-stone-600 dark:text-stone-400"
 											>Contraseña Actual</label
 										>
 										<Input
 											type="password"
 											bind:value={passwordData.currentPassword}
 											placeholder="••••••••"
+											class="h-[36px] rounded-[4px] text-sm"
 										/>
 									</div>
-
-									<div class="flex flex-col gap-2">
+									<div class="flex flex-col gap-1.5">
 										<!-- svelte-ignore a11y_label_has_associated_control -->
-										<label
-											class="text-[0.65rem] font-bold tracking-wider text-stone-500 uppercase dark:text-stone-400"
+										<label class="text-[12px] font-semibold text-stone-600 dark:text-stone-400"
 											>Nueva Contraseña</label
 										>
 										<Input
 											type="password"
 											bind:value={passwordData.newPassword}
 											placeholder="Mínimo 6 caracteres"
+											class="h-[36px] rounded-[4px] text-sm"
 										/>
 									</div>
-
-									<div class="flex flex-col gap-2">
+									<div class="flex flex-col gap-1.5">
 										<!-- svelte-ignore a11y_label_has_associated_control -->
-										<label
-											class="text-[0.65rem] font-bold tracking-wider text-stone-500 uppercase dark:text-stone-400"
-											>Confirmar Nueva Contraseña</label
+										<label class="text-[12px] font-semibold text-stone-600 dark:text-stone-400"
+											>Confirmar Contraseña</label
 										>
 										<Input
 											type="password"
 											bind:value={passwordData.confirmPassword}
 											placeholder="Repite la contraseña"
+											class="h-[36px] rounded-[4px] text-sm"
 										/>
 									</div>
 
-									<button
-										class="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-stone-900 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-stone-900/20 transition-all hover:bg-stone-800 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-70 dark:bg-white dark:text-stone-900 dark:shadow-white/10 dark:hover:bg-stone-100"
-										onclick={handleChangePassword}
-										disabled={isSubmitting}
-									>
-										{#if isSubmitting}
-											<div
-												class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white dark:border-stone-900/40 dark:border-t-stone-900"
-											></div>
-											<span>Actualizando...</span>
-										{:else}
-											<LockIcon class="size-4" />
-											<span>Actualizar Contraseña</span>
-										{/if}
-									</button>
-								</div>
-
-								<!-- Security tips card -->
-								<div
-									class="rounded-2xl border border-stone-200 bg-gradient-to-br from-stone-50 to-stone-100 p-6 dark:border-stone-800 dark:from-stone-800/50 dark:to-stone-900/50"
-								>
-									<div class="mb-5 flex items-center gap-3">
-										<div
-											class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-500 dark:bg-rose-500/20 dark:text-rose-400"
+									<div class="mt-4 flex flex-col-reverse justify-end gap-3 sm:flex-row">
+										<Button
+											variant="outline"
+											class="h-[32px] w-full rounded-[4px] px-4 text-[13px] font-medium sm:w-auto"
+											onclick={() => {
+												isEditingPassword = false;
+												passwordData = {
+													currentPassword: '',
+													newPassword: '',
+													confirmPassword: ''
+												};
+											}}
+											disabled={isSubmitting}
 										>
-											<ShieldIcon class="size-5" />
-										</div>
-										<h4 class="text-sm font-bold text-stone-900 dark:text-white">
-											Consejos de Seguridad
-										</h4>
+											Cancelar
+										</Button>
+										<Button
+											class="h-[32px] w-full rounded-[4px] bg-stone-900 px-4 text-[13px] font-medium text-white hover:bg-stone-800 sm:w-auto dark:bg-white dark:text-stone-900"
+											onclick={handleChangePassword}
+											disabled={isSubmitting}
+											loading={isSubmitting}
+										>
+											Actualizar Contraseña
+										</Button>
 									</div>
-									<ul class="flex flex-col gap-4 text-[0.8rem] text-stone-600 dark:text-stone-400">
-										<li class="flex items-start gap-3">
-											<div
-												class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-500 dark:bg-rose-400"
-											></div>
-											<span class="leading-relaxed"
-												>Usa una combinación de letras mayúsculas, números y símbolos especiales
-												para crear una contraseña fuerte.</span
-											>
-										</li>
-										<li class="flex items-start gap-3">
-											<div
-												class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-500 dark:bg-rose-400"
-											></div>
-											<span class="leading-relaxed"
-												>Evita usar información personal obvia como tu nombre, fecha de nacimiento o
-												números de teléfono.</span
-											>
-										</li>
-										<li class="flex items-start gap-3">
-											<div
-												class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-500 dark:bg-rose-400"
-											></div>
-											<span class="leading-relaxed"
-												>Cambia tu contraseña regularmente y no uses la misma para diferentes
-												cuentas.</span
-											>
-										</li>
-									</ul>
 								</div>
 							</div>
 						{/if}
+					</div>
+				</div>
+			</div>
+
+			<!-- ══ Lado Derecho (Estrecho) ══ -->
+			<div class="flex flex-col gap-6 lg:col-span-4 lg:mt-0">
+				<!-- Tarjeta About Me -->
+				<div
+					class="flex flex-col rounded-lg border border-stone-200 bg-white p-6 shadow-sm dark:border-stone-800 dark:bg-stone-900"
+				>
+					<h3 class="mb-3 text-base font-semibold text-stone-900 dark:text-white">
+						Información de Cuenta
+					</h3>
+					<p class="mb-5 text-[13px] leading-relaxed text-stone-500 dark:text-stone-400">
+						Detalles administrativos de tu perfil como nivel de permisos y estado actual de uso.
+					</p>
+
+					<div class="flex flex-col gap-4">
+						<div
+							class="flex items-center justify-between border-t border-stone-100 pt-4 dark:border-stone-800/60"
+						>
+							<span class="text-[13px] text-stone-600 dark:text-stone-300">Estado</span>
+							<div class="flex flex-wrap items-center gap-1.5">
+								<div class="h-1.5 w-1.5 rounded-full bg-green-500"></div>
+								<span class="text-[12px] font-medium text-stone-700 dark:text-stone-200"
+									>Activo</span
+								>
+							</div>
+						</div>
+
+						<div
+							class="flex items-center justify-between border-t border-stone-100 pt-4 dark:border-stone-800/60"
+						>
+							<span class="text-[13px] text-stone-600 dark:text-stone-300">Rol asignado</span>
+							<span
+								class="rounded border border-stone-200 bg-stone-100 px-2 py-0.5 text-[11px] font-semibold text-stone-600 uppercase dark:border-stone-700 dark:bg-stone-800"
+							>
+								{$currentUser?.role}
+							</span>
+						</div>
+
+						<div
+							class="flex items-center justify-between border-t border-stone-100 pt-4 dark:border-stone-800/60"
+						>
+							<span class="text-[13px] text-stone-600 dark:text-stone-300">Verificación</span>
+							<div class="flex flex-wrap items-center gap-1.5">
+								<div class="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
+								<span class="text-[12px] font-medium text-stone-700 dark:text-stone-200"
+									>Verificado</span
+								>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>

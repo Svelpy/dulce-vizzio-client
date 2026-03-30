@@ -1,20 +1,22 @@
 <script lang="ts">
 	import { Navbar, Sidebar } from '$lib/components/ui';
-	import { sidebarState } from '$lib/stores';
 
 	let { children } = $props();
-
-	const mainMargin = $derived(`
-		transition-all duration-300
-		${$sidebarState === 'hidden' ? 'ml-0' : $sidebarState === 'icon-only' ? 'lg:ml-16 ml-0' : 'lg:ml-64 ml-0'}
-	`);
 </script>
 
-<div class="min-h-dvh bg-light-one dark:bg-dark-one">
-	<Navbar />
+<div class="flex h-dvh w-full overflow-hidden bg-light-one dark:bg-dark-one">
+	<!-- Sidebar handles its own resizing and styling (Hidden on mobile) -->
 	<Sidebar />
 
-	<main class="mx-auto mt-16 p-4 transition-all duration-300 md:p-8 {mainMargin}">
-		{@render children?.()}
-	</main>
+	<!-- Right Side: Main Content Context -->
+	<div class="flex min-w-0 flex-1 flex-col transition-all duration-300">
+		<Navbar />
+
+		<!-- Scrollable Area -->
+		<main class="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-8">
+			<div class="mx-auto h-full max-w-[1600px]">
+				{@render children?.()}
+			</div>
+		</main>
+	</div>
 </div>

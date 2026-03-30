@@ -5,7 +5,6 @@
 	import { UserIcon, BookIcon, HomeDotIcon, UsersIcon, Menu2Icon, XIcon } from '$lib/icons/outline';
 	import logoApp from '$lib/assets/images/logo_dulce_vizzio.png';
 	import { onMount } from 'svelte';
-	import { sidebarState } from '$lib/stores';
 	import { redirect } from '$lib/utils';
 	import { DropdownMenu } from '.';
 	import { LogoutIcon } from '$lib/icons/solid';
@@ -47,14 +46,6 @@
 			document.removeEventListener('click', handleClickOutside);
 		};
 	});
-
-	const toggleVisibility = () => {
-		if ($sidebarState === 'hidden') {
-			$sidebarState = 'icon-only';
-		} else {
-			$sidebarState = 'hidden';
-		}
-	};
 
 	const optionsMenu = [
 		{
@@ -103,24 +94,14 @@
 </script>
 
 <nav
-	class="fixed top-0 right-0 z-50 flex bg-light-two transition-all duration-300 dark:bg-dark-two {$sidebarState ===
-	'hidden'
-		? 'left-0'
-		: 'left-0'}"
+	class="relative z-30 flex border-b border-light-four bg-light-one transition-colors duration-300"
 >
 	<div class="w-full px-4">
 		<div class="flex h-16 w-full items-center justify-between">
-			<button
-				onclick={toggleVisibility}
-				class="mr-2 hidden items-center justify-center bg-light-two p-2 text-light-one transition-all hover:text-light-one_d md:flex"
-				aria-label="Toggle sidebar"
-			>
-				<Menu2Icon class="h-6 w-6" />
-			</button>
 			<!-- Mobile Hamburger -->
 			<button
 				onclick={toggleMobileMenu}
-				class="mr-2 rounded-lg p-2 text-light-one hover:bg-light-five md:hidden"
+				class="mr-2 rounded-lg p-2 text-stone-600 hover:bg-stone-100 md:hidden dark:text-stone-400 dark:hover:bg-stone-800"
 				aria-label="Toggle menu"
 			>
 				{#if mobileMenuOpen}
@@ -131,8 +112,8 @@
 			</button>
 
 			<div class="flex flex-1 items-center">
-				<div class="flex items-center">
-					<img src={logoApp} alt="Logo Dulce Vizzio" class="h-10 w-auto" />
+				<div class="flex items-center md:hidden">
+					<img src={logoApp} alt="Logo Dulce Vizzio" class="h-9 w-auto" />
 				</div>
 			</div>
 			<div class="flex items-center gap-4">
@@ -142,7 +123,7 @@
 							<button
 								onclick={() => toggleUserMenu()}
 								aria-label="Acciones"
-								class="flex h-10 w-10 items-center justify-center rounded-full bg-light-five text-light-one transition-all hover:bg-light-five_d"
+								class="flex size-9 items-center justify-center rounded-full bg-stone-100 text-stone-600 transition-colors hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
 							>
 								<UserIcon class="h-5 w-5" />
 							</button>
@@ -220,7 +201,7 @@
 		></div>
 
 		<div
-			class="absolute top-16 left-0 z-50 w-full border-b border-light-five bg-light-two p-4 lg:hidden"
+			class="absolute top-16 left-0 z-50 w-full border-b border-stone-200 bg-white p-4 shadow-lg lg:hidden dark:border-stone-800 dark:bg-stone-950"
 		>
 			<nav class="space-y-2">
 				{#each menuItems as item (item.href)}
@@ -230,8 +211,8 @@
 						class="flex items-center gap-4 rounded-xl px-4 py-3.5 text-sm font-semibold transition-all {isActive(
 							item.href
 						)
-							? 'bg-light-five text-light-one shadow-sm'
-							: 'text-light-one hover:bg-light-five hover:text-light-one'}"
+							? 'bg-stone-100 text-stone-900 dark:bg-stone-800 dark:text-white'
+							: 'text-stone-600 hover:bg-stone-50 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-900 dark:hover:text-white'}"
 					>
 						<item.icon class="h-5 w-5" />
 						<span>{item.label}</span>
@@ -239,8 +220,8 @@
 				{/each}
 
 				{#if adminItems.length > 0}
-					<div class="mt-4 border-t border-light-five pt-4">
-						<p class="mb-2 px-4 text-xs font-bold tracking-wider text-gray-500 uppercase">
+					<div class="mt-4 border-t border-stone-100 pt-4 dark:border-stone-800">
+						<p class="mb-2 px-4 text-xs font-bold tracking-wider text-stone-400 uppercase">
 							Administración
 						</p>
 						{#each adminItems as item (item.href)}
@@ -250,8 +231,8 @@
 								class="flex items-center gap-4 rounded-xl px-4 py-3.5 text-sm font-semibold transition-all {isActive(
 									item.href
 								)
-									? 'bg-light-five text-light-one shadow-sm'
-									: 'text-gray-400 hover:bg-light-five hover:text-light-one'}"
+									? 'bg-stone-100 text-stone-900 dark:bg-stone-800 dark:text-white'
+									: 'text-stone-500 hover:bg-stone-50 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-900 dark:hover:text-white'}"
 							>
 								<item.icon class="h-5 w-5" />
 								<span>{item.label}</span>
