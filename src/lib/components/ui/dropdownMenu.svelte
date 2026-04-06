@@ -54,7 +54,16 @@
 					}`}
 					role="menuitem"
 					tabindex="-1"
-					onclick={() => handleSelect(option)}
+					onclick={(e) => {
+						e.stopPropagation();
+						handleSelect(option);
+					}}
+					onkeydown={(e) => {
+						if (e.key === 'Enter' || e.key === ' ') {
+							e.stopPropagation();
+							handleSelect(option);
+						}
+					}}
 					disabled={option.disabled}
 				>
 					{#if option.icon}

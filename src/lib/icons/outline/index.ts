@@ -69,3 +69,6 @@ export { default as ChefHatIcon } from './chefHatIcon.svelte';
 export { default as PhoneIcon } from './phoneIcon.svelte';
 export { default as SidebarCollapseLeftIcon } from './sidebarCollapseLeftIcon.svelte';
 export { default as SidebarCollapseRightIcon } from './sidebarCollapseRightIcon.svelte';
+export { default as BellIcon } from './bellIcon.svelte';
+export { default as SettingsIcon } from './settingsIcon.svelte';
+export { default as CakeIcon } from './cakeIcon.svelte';

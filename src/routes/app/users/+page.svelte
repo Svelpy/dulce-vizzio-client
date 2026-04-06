@@ -116,12 +116,12 @@
 		showChangeRoleModal = true;
 	}
 
-	function handleResetFilters() {
-		searchQuery = '';
-		selectedRole = null;
-		currentPage = 1;
-		loadUsers();
-	}
+	// function handleResetFilters() {
+	// 	searchQuery = '';
+	// 	selectedRole = null;
+	// 	currentPage = 1;
+	// 	loadUsers();
+	// }
 
 	function handleSuccess() {
 		loadUsers();

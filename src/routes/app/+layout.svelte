@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Navbar, Sidebar } from '$lib/components/ui';
+	import { Navbar, Sidebar, MobileBottomNav } from '$lib/components/ui';
 
 	let { children } = $props();
 </script>
@@ -13,10 +13,12 @@
 		<Navbar />
 
 		<!-- Scrollable Area -->
-		<main class="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-8">
-			<div class="mx-auto h-full max-w-[1600px]">
+		<main class="mb-20 flex-1 overflow-x-hidden overflow-y-auto p-4 md:mb-8 md:p-8">
+			<div class="mx-auto h-full">
 				{@render children?.()}
 			</div>
 		</main>
 	</div>
 </div>
+
+<MobileBottomNav />

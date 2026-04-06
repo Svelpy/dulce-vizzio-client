@@ -1,38 +1,41 @@
 <script lang="ts">
-	import { CourseCardSkeleton } from '$lib/components/skeletons/course';
 </script>
 
 <div class="space-y-12 pb-12">
 	<!-- Welcome Skeleton -->
 	<div class="space-y-3">
 		<div
-			class="h-10 w-64 animate-shimmer rounded-lg bg-linear-to-r from-slate-200 via-slate-100 to-slate-200 bg-size-[200%_100%] dark:from-slate-800 dark:via-slate-700 dark:to-slate-800"
+			class="animate-shimmer h-10 w-64 rounded-xl bg-linear-to-r from-sweet-pink-50 via-white to-sweet-pink-50 bg-size-[200%_100%]"
 		></div>
 		<div
-			class="h-4 w-48 animate-shimmer rounded bg-linear-to-r from-slate-200 via-slate-100 to-slate-200 bg-size-[200%_100%] dark:from-slate-800 dark:via-slate-700 dark:to-slate-800 opacity-50"
+			class="animate-shimmer h-4 w-48 rounded-lg bg-linear-to-r from-sweet-pink-50 via-white to-sweet-pink-50 bg-size-[200%_100%] opacity-50"
 		></div>
 	</div>
 
-	<!-- My Courses Section -->
+	<!-- Enrolled Courses Section (Horizontal Scroll) -->
 	<div class="space-y-6">
 		<div
-			class="h-8 w-40 animate-shimmer rounded-lg bg-linear-to-r from-slate-200 via-slate-100 to-slate-200 bg-size-[200%_100%] dark:from-slate-800 dark:via-slate-700 dark:to-slate-800"
+			class="animate-shimmer h-8 w-40 rounded-xl bg-linear-to-r from-sweet-pink-50 via-white to-sweet-pink-50 bg-size-[200%_100%]"
 		></div>
-		<div class="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-5">
-			{#each { length: 5 } as _, i (i)}
-				<CourseCardSkeleton />
+		<div class="scrollbar-hide flex gap-4 overflow-x-auto pb-4">
+			{#each { length: 4 } as _, i (i)}
+				<div
+					class="animate-shimmer h-48 w-64 shrink-0 rounded-3xl bg-linear-to-r from-sweet-pink-50 via-white to-sweet-pink-50 bg-size-[200%_100%]"
+				></div>
 			{/each}
 		</div>
 	</div>
 
-	<!-- Recommended Courses Section -->
+	<!-- Recommended Courses Section (Grid) -->
 	<div class="space-y-6">
 		<div
-			class="h-8 w-60 animate-shimmer rounded-lg bg-linear-to-r from-slate-200 via-slate-100 to-slate-200 bg-size-[200%_100%] dark:from-slate-800 dark:via-slate-700 dark:to-slate-800"
+			class="animate-shimmer h-8 w-60 rounded-xl bg-linear-to-r from-sweet-pink-50 via-white to-sweet-pink-50 bg-size-[200%_100%]"
 		></div>
-		<div class="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-5">
-			{#each { length: 5 } as _, i (i)}
-				<CourseCardSkeleton />
+		<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
+			{#each { length: 4 } as _, i (i)}
+				<div
+					class="animate-shimmer h-64 w-full rounded-3xl bg-linear-to-r from-sweet-pink-50 via-white to-sweet-pink-50 bg-size-[200%_100%]"
+				></div>
 			{/each}
 		</div>
 	</div>

@@ -1,3 +1,8 @@
+export interface CourseCategory {
+	id: number;
+	name: string;
+	icon: string;
+}
 import type { BaseDocument } from './base.interface';
 
 // Course difficulty levels

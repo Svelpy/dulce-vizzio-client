@@ -2,11 +2,19 @@
 	import { onMount } from 'svelte';
 	import { authStore, currentUser } from '$lib/stores/auth.store';
 	import { Button, Input, MainLayout } from '$lib/components/ui';
-	//import { UserService } from '$lib/services';
 	import { alert } from '$lib/utils';
-	import { MailIcon, UserIcon, CheckIcon, ClockIcon, PhoneIcon } from '$lib/icons/outline';
-	import { CalendarIcon, LockIcon, CameraIcon, ShieldIcon } from '$lib/icons/solid';
+	import {
+		MailIcon,
+		UserIcon,
+		PhoneIcon,
+		ClockIcon,
+		SettingsIcon,
+		CakeIcon,
+		ChevronsRightIcon
+	} from '$lib/icons/outline';
 	import { userService } from '$lib/services';
+	import { CalendarIcon, CameraIcon, LogoutIcon, ShieldCheckIcon } from '$lib/icons/solid';
+	import { cn } from '$lib/utils';
 
 	let isEditing = $state(false);
 	let isEditingPassword = $state(false);
@@ -54,7 +62,6 @@
 	async function handleUpdateProfile() {
 		if (!$currentUser) return;
 
-		// Basic validation
 		if (!formData.full_name || !formData.username) {
 			alert('error', 'Nombre y usuario son requeridos');
 			return;
@@ -75,10 +82,6 @@
 	}
 
 	async function handleChangePassword() {
-		if (!passwordData.currentPassword) {
-			alert('error', 'Ingresa tu contraseña actual');
-			return;
-		}
 		if (passwordData.newPassword.length < 6) {
 			alert('error', 'La contraseña debe tener al menos 6 caracteres');
 			return;
@@ -90,7 +93,6 @@
 
 		isSubmitting = true;
 		try {
-			// Assuming resetPassword or similar update password method
 			await userService.resetPassword($currentUser!.id, passwordData.newPassword);
 			alert('success', 'Contraseña actualizada correctamente');
 			passwordData = { currentPassword: '', newPassword: '', confirmPassword: '' };
@@ -103,11 +105,6 @@
 		}
 	}
 
-	function cancelEdit() {
-		resetForm();
-		isEditing = false;
-	}
-
 	function triggerAvatarUpload() {
 		fileInputEl?.click();
 	}
@@ -117,499 +114,408 @@
 		const file = input.files?.[0];
 		if (!file) return;
 
-		// Validate file type
 		if (!file.type.startsWith('image/')) {
-			alert('error', 'Por favor selecciona una imagen válida');
+			alert('error', 'Selecciona una imagen válida');
 			return;
 		}
 
-		// Validate max size: 5MB
-		if (file.size > 5 * 1024 * 1024) {
-			alert('error', 'La imagen no puede superar los 5MB');
-			return;
-		}
-
-		// Preview locally while uploading
 		avatarPreview = URL.createObjectURL(file);
-
 		isUploadingAvatar = true;
+
 		try {
 			const updatedUser = await userService.updateAvatar(file);
 			authStore.updateUser(updatedUser);
-			avatarPreview = null; // Use the server URL now
-			alert('success', 'Foto de perfil actualizada correctamente');
+			avatarPreview = null;
+			alert('success', 'Foto de perfil actualizada');
 		} catch (err) {
 			console.error('Error updating avatar:', err);
 			avatarPreview = null;
-			alert('error', 'Error al actualizar la foto de perfil');
+			alert('error', 'Error al actualizar la foto');
 		} finally {
 			isUploadingAvatar = false;
-			// Reset input so the same file can be re-selected if needed
 			if (input) input.value = '';
 		}
 	}
 
-	const formatDate = (date: string) => {
+	const formatDate = (date: string | null | undefined) => {
 		if (!date) return 'No especificada';
-		// Prevenir errores de parseo con UTC para consistencia
-		const d = new Date(date);
-		return d.toLocaleDateString('es-ES', {
+		return new Date(date).toLocaleDateString('es-ES', {
 			year: 'numeric',
 			month: 'long',
 			day: 'numeric'
 		});
 	};
+
+	async function handleLogout() {
+		await authStore.logout();
+	}
 </script>
 
-<MainLayout
-	title="Mi Perfil"
-	description="Gestiona tu información personal y seguridad"
-	class=" container mx-auto"
->
-	<div class="mx-auto my-4 flex w-full max-w-[1200px] flex-col gap-6 px-2 sm:px-6">
-		<!-- ─── Header Area ─── -->
-		<div
-			class="flex flex-col items-center gap-6 bg-transparent py-4 sm:flex-row sm:justify-between sm:gap-8"
-		>
-			<div class="flex flex-col items-center gap-6 sm:flex-row sm:items-center">
-				<!-- Avatar -->
+<MainLayout title="Mi Perfil" description="Gestiona tu información de cuenta">
+	<div class="mx-auto flex flex-col gap-8">
+		<!-- Header Section -->
+		<div class="px-2">
+			<h1 class="flex items-center gap-2 text-3xl font-black text-sweet-brown">
+				Mi Perfil <span class="animate-bounce">🖐️</span>
+			</h1>
+			<p class="mt-1 text-sm font-bold text-sweet-brown/40">
+				Descubre deliciosos cursos de repostería
+			</p>
+		</div>
+
+		<!-- ─── Main Content Area (Reading / Inline Editing) ─── -->
+		{#if !isEditingPassword}
+			<!-- Hero Profile Card (Always visible unless changing password) -->
+			<div
+				class="relative overflow-hidden rounded-[32px] bg-white p-8 shadow-sweet transition-all duration-300"
+			>
+				<!-- Subtle Background Decoration -->
 				<div
-					class="relative flex h-32 w-32 shrink-0 overflow-hidden rounded-full border border-stone-200/50 bg-stone-100 sm:h-[110px] sm:w-[110px] dark:border-stone-700 dark:bg-stone-800"
-				>
-					{#if avatarPreview || $currentUser?.avatar_url}
-						<img
-							src={avatarPreview ?? $currentUser?.avatar_url}
-							alt={$currentUser?.full_name}
-							class="h-full w-full object-cover"
-						/>
-					{:else}
+					class="pointer-events-none absolute -top-20 -right-20 h-64 w-64 rounded-full bg-sweet-pink-50 opacity-50 blur-3xl"
+				></div>
+
+				<div class="relative flex flex-col items-center gap-6 sm:flex-row">
+					<!-- Avatar Container -->
+					<div class="relative">
 						<div
-							class="flex h-full w-full items-center justify-center bg-[#EFD68B] text-[40px] font-medium text-stone-800"
+							class="h-32 w-32 overflow-hidden rounded-full border-4 border-white bg-sweet-pink-50 shadow-md sm:h-36 sm:w-36"
 						>
-							{$currentUser?.full_name?.substring(0, 2).toUpperCase() || 'U'}
+							{#if avatarPreview || $currentUser?.avatar_url}
+								<img
+									src={avatarPreview ?? $currentUser?.avatar_url}
+									alt={$currentUser?.full_name}
+									class="h-full w-full object-cover"
+								/>
+							{:else}
+								<div class="flex h-full w-full items-center justify-center text-sweet-pink-200">
+									<UserIcon class="h-16 w-16" />
+								</div>
+							{/if}
+
+							{#if isUploadingAvatar}
+								<div
+									class="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+								>
+									<div
+										class="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent"
+									></div>
+								</div>
+							{/if}
 						</div>
-					{/if}
 
-					{#if isUploadingAvatar}
-						<div
-							class="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm"
-						>
-							<div
-								class="h-5 w-5 animate-spin rounded-full border-2 border-white/50 border-t-white"
-							></div>
-						</div>
-					{/if}
-				</div>
-
-				<!-- Hidden file input -->
-				<input
-					bind:this={fileInputEl}
-					type="file"
-					accept="image/*"
-					class="hidden"
-					onchange={handleAvatarChange}
-				/>
-
-				<!-- Info Details -->
-				<div class="flex flex-col items-center text-center sm:items-start sm:text-left">
-					<div class="flex items-center gap-3">
-						<h1 class="text-[28px] font-medium tracking-tight text-stone-900 dark:text-white">
-							{$currentUser?.full_name}
-						</h1>
+						<!-- Camera Button -->
 						<button
-							class="mt-1 flex size-6 items-center justify-center rounded-full text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600 dark:hover:bg-stone-800"
 							onclick={triggerAvatarUpload}
-							title="Cambiar foto de perfil"
 							disabled={isUploadingAvatar}
+							class="absolute right-2 bottom-2 flex h-10 w-10 items-center justify-center rounded-full bg-sweet-pink-400 text-white shadow-lg transition-transform hover:scale-110 active:scale-95"
 						>
-							<CameraIcon class="size-3.5" />
+							<CameraIcon class="h-5 w-5" />
+						</button>
+						<input
+							bind:this={fileInputEl}
+							type="file"
+							accept="image/*"
+							class="hidden"
+							onchange={handleAvatarChange}
+						/>
+					</div>
+
+					<!-- User Info Summary -->
+					<div class="flex-1 text-center sm:text-left">
+						<div class="flex flex-col items-center gap-1 sm:items-start">
+							<h2 class="text-2xl font-black text-sweet-brown">
+								{$currentUser?.full_name || 'Nombre no definido'}
+							</h2>
+							<span class="text-sm font-bold text-sweet-brown/40">
+								@{$currentUser?.username || 'usuario'}
+							</span>
+							<div
+								class="mt-2 flex items-center gap-2 rounded-full bg-sweet-pink-50 px-4 py-1.5 text-xs font-black text-sweet-pink-500"
+							>
+								<UserIcon class="h-3.5 w-3.5" />
+								{$currentUser?.role === 'ADMIN' ? 'Administrador' : 'Usuario'}
+							</div>
+
+							{#if !isEditing}
+								<Button
+									onclick={() => (isEditing = true)}
+									class="sweet-gradient-intense mt-4 h-11 rounded-2xl px-10 text-sm font-black text-white shadow-sweet"
+								>
+									Editar Perfil
+								</Button>
+							{/if}
+						</div>
+					</div>
+
+					<!-- Settings Button -->
+					<div class="absolute top-0 right-0">
+						<button
+							onclick={() => {
+								isEditingPassword = true;
+								isEditing = false;
+							}}
+							class="flex h-10 w-10 items-center justify-center rounded-2xl bg-sweet-pink-50 text-sweet-pink-300 transition-colors hover:bg-sweet-pink-100 hover:text-sweet-pink-500"
+						>
+							<SettingsIcon class="h-5 w-5" />
 						</button>
 					</div>
-					<div
-						class="mt-1 flex flex-wrap items-center justify-center gap-4 text-[13px] text-stone-500 sm:justify-start"
-					>
-						<div class="flex items-center gap-1.5">
-							<ClockIcon class="size-3.5" />
-							<span>Miembro desde {formatDate($currentUser?.created_at || '')}</span>
-						</div>
-						<div class="flex items-center gap-1.5">
-							<MailIcon class="size-3.5" />
-							<span>{$currentUser?.email}</span>
-						</div>
-					</div>
 				</div>
 			</div>
 
-			<!-- Quick Actions -->
-			<div class="mt-2 flex shrink-0 items-center gap-2.5 sm:mt-0">
-				<Button
-					class="h-[32px] rounded-[4px] border-none bg-[#5361D4] px-3 text-[13px] font-medium text-white shadow-none hover:bg-[#4652B6]"
-					onclick={() => (isEditing = true)}
-				>
-					Editar perfil
-				</Button>
-			</div>
-		</div>
+			<!-- Account Details Card (With Inline Editing) -->
+			<div class="flex flex-col gap-6 px-1">
+				<div class="flex items-center gap-2">
+					<div class="h-1.5 w-1.5 rounded-full bg-sweet-pink-300"></div>
+					<h3 class="text-lg font-black text-sweet-brown">Información de la cuenta</h3>
+					<div class="h-1.5 w-1.5 rounded-full bg-sweet-pink-300"></div>
+				</div>
 
-		<!-- ─── Main Grid Layout ─── -->
-		<div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
-			<!-- ══ Lado Izquierdo (Ancho) ══ -->
-			<div class="flex flex-col gap-6 lg:col-span-8">
-				<!-- Tarjeta Principal: Información Personal -->
-				<div
-					class="flex flex-col overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-800 dark:bg-stone-900"
-				>
-					<!-- Header -->
-					<div
-						class="flex items-center justify-between border-b border-stone-100 px-6 py-4 dark:border-stone-800"
-					>
-						<h2
-							class="flex items-center gap-2 text-base font-semibold text-stone-900 dark:text-white"
-						>
-							Información Personal <LockIcon class="size-3 text-stone-400" />
-						</h2>
-						<!-- {#if !isEditing}
+				<div class="divide-y divide-sweet-pink-50 rounded-[32px] bg-white p-2 shadow-sweet">
+					<!-- Full Name Row -->
+					<div class="flex min-h-[72px] items-center justify-between gap-4 p-4 px-6">
+						<div class="flex flex-1 items-center gap-4">
+							<div
+								class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sweet-pink-50"
+							>
+								<UserIcon class="h-5 w-5 text-sweet-pink-400" />
+							</div>
+							<span class="text-sm font-bold text-sweet-brown/60">Nombre completo</span>
+						</div>
+						<div class="flex-1 text-right">
+							{#if isEditing}
+								<Input
+									bind:value={formData.full_name}
+									class="h-10 border-sweet-pink-100 bg-sweet-pink-50/20 text-right font-bold"
+								/>
+							{:else}
+								<span class="text-sm font-black text-sweet-brown">{$currentUser?.full_name}</span>
+							{/if}
+						</div>
+					</div>
+
+					<!-- Username Row -->
+					<div class="flex min-h-[72px] items-center justify-between gap-4 p-4 px-6">
+						<div class="flex flex-1 items-center gap-4">
+							<div
+								class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sweet-pink-50"
+							>
+								<CakeIcon class="h-5 w-5 text-sweet-pink-400" />
+							</div>
+							<span class="text-sm font-bold text-sweet-brown/60">Nombre de usuario</span>
+						</div>
+						<div class="flex-1 text-right">
+							{#if isEditing}
+								<Input
+									bind:value={formData.username}
+									class="h-10 border-sweet-pink-100 bg-sweet-pink-50/20 text-right font-bold"
+								/>
+							{:else}
+								<span class="text-sm font-black text-sweet-brown">@{$currentUser?.username}</span>
+							{/if}
+						</div>
+					</div>
+
+					<!-- Birth Date Row -->
+					<div class="flex min-h-[72px] items-center justify-between gap-4 p-4 px-6">
+						<div class="flex flex-1 items-center gap-4">
+							<div
+								class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sweet-pink-50"
+							>
+								<CalendarIcon class="h-5 w-5 text-sweet-pink-400" />
+							</div>
+							<span class="text-sm font-bold text-sweet-brown/60">Fecha de nacimiento</span>
+						</div>
+						<div class="flex-1 text-right">
+							{#if isEditing}
+								<Input
+									type="date"
+									bind:value={formData.birth_date}
+									class="h-10 border-sweet-pink-100 bg-sweet-pink-50/20 text-right font-bold"
+								/>
+							{:else}
+								<div
+									class="flex items-center justify-end gap-1 text-sm font-black text-sweet-brown"
+								>
+									{formatDate($currentUser?.birth_date)}
+									<ChevronsRightIcon class="h-4 w-4" />
+								</div>
+							{/if}
+						</div>
+					</div>
+
+					<!-- Email Row -->
+					<div class="flex min-h-[72px] items-center justify-between gap-4 p-4 px-6">
+						<div class="flex flex-1 items-center gap-4">
+							<div
+								class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sweet-pink-50"
+							>
+								<MailIcon class="h-5 w-5 text-sweet-pink-400" />
+							</div>
+							<span class="text-sm font-bold text-sweet-brown/60">Correo electrónico</span>
+						</div>
+						<div class="flex-1 text-right">
+							{#if isEditing}
+								<Input
+									type="email"
+									bind:value={formData.email}
+									class="h-10 border-sweet-pink-100 bg-sweet-pink-50/20 text-right font-bold"
+								/>
+							{:else}
+								<div
+									class="flex items-center justify-end gap-1 text-sm font-black text-sweet-brown"
+								>
+									{$currentUser?.email}
+									<ChevronsRightIcon class="h-4 w-4" />
+								</div>
+							{/if}
+						</div>
+					</div>
+
+					<!-- Phone Row -->
+					<div class="flex min-h-[72px] items-center justify-between gap-4 p-4 px-6">
+						<div class="flex flex-1 items-center gap-4">
+							<div
+								class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sweet-pink-50"
+							>
+								<PhoneIcon class="h-5 w-5 text-sweet-pink-400" />
+							</div>
+							<span class="text-sm font-bold text-sweet-brown/60">Número de teléfono</span>
+						</div>
+						<div class="flex-1 text-right">
+							{#if isEditing}
+								<Input
+									type="tel"
+									bind:value={formData.phone_number}
+									class="h-10 border-sweet-pink-100 bg-sweet-pink-50/20 text-right font-bold"
+								/>
+							{:else}
+								<div
+									class="flex items-center justify-end gap-1 text-sm font-black text-sweet-brown"
+								>
+									{$currentUser?.phone_number || 'No especificado'}
+									<ChevronsRightIcon class="h-4 w-4" />
+								</div>
+							{/if}
+						</div>
+					</div>
+
+					<!-- Registration Date (Read Only) Row -->
+					<div class="flex min-h-[72px] items-center justify-between gap-4 p-4 px-6">
+						<div class="flex flex-1 items-center gap-4">
+							<div
+								class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sweet-pink-50"
+							>
+								<ClockIcon class="h-5 w-5 text-sweet-pink-400" />
+							</div>
+							<span class="text-sm font-bold text-sweet-brown/60">Fecha de registro</span>
+						</div>
+						<div class="flex items-center justify-end gap-1 text-sm font-black text-sweet-brown">
+							{formatDate($currentUser?.created_at)}
+							<ChevronsRightIcon class="h-4 w-4" />
+						</div>
+					</div>
+
+					{#if isEditing}
+						<!-- Inline Editor Actions -->
+						<div class="flex items-center gap-3 p-6 px-6">
 							<Button
 								variant="outline"
-								class="h-[28px] rounded-[4px] border-stone-200 bg-white px-3 text-[12px] font-medium"
-								onclick={() => (isEditing = true)}
+								onclick={() => {
+									isEditing = false;
+									resetForm();
+								}}
+								class="h-11 flex-1 rounded-2xl border-2 border-sweet-pink-100 font-black text-sweet-pink-400 hover:bg-sweet-pink-50"
 							>
-								Ver todo
+								Cancelar
 							</Button>
-						{/if} -->
-					</div>
-
-					<!-- Form / View Content -->
-					<div class="p-6">
-						{#if isEditing}
-							<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-								<!-- Inputs -->
-								<div class="flex flex-col gap-1.5">
-									<!-- svelte-ignore a11y_label_has_associated_control -->
-									<label class="text-[12px] font-semibold text-stone-600 dark:text-stone-400"
-										>Nombre Completo</label
-									>
-									<Input
-										bind:value={formData.full_name}
-										placeholder="Nombre completo"
-										icon={UserIcon}
-										class="h-[36px] rounded-[4px] text-sm"
-									/>
-								</div>
-								<div class="flex flex-col gap-1.5">
-									<!-- svelte-ignore a11y_label_has_associated_control -->
-									<label class="text-[12px] font-semibold text-stone-600 dark:text-stone-400"
-										>Usuario</label
-									>
-									<Input
-										bind:value={formData.username}
-										placeholder="Nombre de usuario"
-										icon={UserIcon}
-										class="h-[36px] rounded-[4px] text-sm"
-									/>
-								</div>
-								<div class="flex flex-col gap-1.5">
-									<!-- svelte-ignore a11y_label_has_associated_control -->
-									<label class="text-[12px] font-semibold text-stone-600 dark:text-stone-400"
-										>Correo Electrónico</label
-									>
-									<Input
-										bind:value={formData.email}
-										type="email"
-										placeholder="correo@ejemplo.com"
-										icon={MailIcon}
-										class="h-[36px] rounded-[4px] text-sm"
-									/>
-								</div>
-								<div class="flex flex-col gap-1.5">
-									<!-- svelte-ignore a11y_label_has_associated_control -->
-									<label class="text-[12px] font-semibold text-stone-600 dark:text-stone-400"
-										>Teléfono</label
-									>
-									<Input
-										bind:value={formData.phone_number}
-										type="tel"
-										placeholder="+..."
-										icon={PhoneIcon}
-										class="h-[36px] rounded-[4px] text-sm"
-									/>
-								</div>
-								<div class="col-span-1 flex flex-col gap-1.5 sm:col-span-2">
-									<!-- svelte-ignore a11y_label_has_associated_control -->
-									<label class="text-[12px] font-semibold text-stone-600 dark:text-stone-400"
-										>Fecha de Nacimiento</label
-									>
-									<Input
-										bind:value={formData.birth_date}
-										type="date"
-										icon={CalendarIcon}
-										class="h-[36px] rounded-[4px] text-sm"
-									/>
-								</div>
-							</div>
-
-							<!-- Acciones Form -->
-							<div
-								class="mt-8 flex justify-end gap-3 border-t border-stone-100 pt-5 dark:border-stone-800"
+							<Button
+								onclick={handleUpdateProfile}
+								disabled={isSubmitting}
+								loading={isSubmitting}
+								class="sweet-gradient-intense h-11 flex-1 rounded-2xl font-black text-white shadow-md active:scale-95"
 							>
-								<Button
-									variant="outline"
-									class="h-[32px] rounded-[4px] px-4 text-[13px] font-medium"
-									onclick={cancelEdit}
-									disabled={isSubmitting}
-								>
-									Cancelar
-								</Button>
-								<Button
-									class="h-[32px] rounded-[4px] bg-stone-900 px-4 text-[13px] font-medium text-white hover:bg-stone-800"
-									onclick={handleUpdateProfile}
-									disabled={isSubmitting}
-									loading={isSubmitting}
-								>
-									Guardar Cambios
-								</Button>
+								Guardar
+							</Button>
+						</div>
+					{:else}
+						<!-- Footer status -->
+						<div class="flex items-center justify-center p-4">
+							<div class="flex items-center gap-2 text-xs font-bold text-sweet-brown/30">
+								<ClockIcon class="h-3 w-3" />
+								<span>Perfil verificado y activo</span>
 							</div>
-						{:else}
-							<!-- Vista Modo Lista Estilo "My Tasks" -->
-							<div class="flex flex-col">
-								<!-- Info Row -->
-								<div
-									class="flex items-center justify-between border-b border-stone-100 py-3 dark:border-stone-800/60"
-								>
-									<div class="flex items-center gap-3">
-										<span class="text-[13px] font-medium text-stone-800 dark:text-stone-200"
-											>{$currentUser?.full_name || 'No especificado'}</span
-										>
-									</div>
-									<div
-										class="rounded-full border border-stone-200/50 bg-stone-100/80 px-2.5 py-0.5 text-[11px] font-medium text-stone-500 dark:border-stone-700/50 dark:bg-stone-800"
-									>
-										Nombre Completo
-									</div>
-								</div>
-
-								<div
-									class="flex items-center justify-between border-b border-stone-100 py-3 dark:border-stone-800/60"
-								>
-									<div class="flex items-center gap-3">
-										<span class="text-[13px] font-medium text-stone-800 dark:text-stone-200"
-											>{$currentUser?.username || 'No especificado'}</span
-										>
-									</div>
-									<div
-										class="rounded-full border border-stone-200/50 bg-stone-100/80 px-2.5 py-0.5 text-[11px] font-medium text-stone-500 dark:border-stone-700/50 dark:bg-stone-800"
-									>
-										Usuario
-									</div>
-								</div>
-
-								<div
-									class="flex items-center justify-between border-b border-stone-100 py-3 dark:border-stone-800/60"
-								>
-									<div class="flex items-center gap-3">
-										<span class="text-[13px] font-medium text-stone-800 dark:text-stone-200"
-											>{$currentUser?.email || 'No especificado'}</span
-										>
-									</div>
-									<div
-										class="rounded-full border border-stone-200/50 bg-stone-100/80 px-2.5 py-0.5 text-[11px] font-medium text-stone-500 dark:border-stone-700/50 dark:bg-stone-800"
-									>
-										Correo
-									</div>
-								</div>
-
-								<div
-									class="flex items-center justify-between border-b border-stone-100 py-3 dark:border-stone-800/60"
-								>
-									<div class="flex items-center gap-3">
-										<span class="text-[13px] font-medium text-stone-800 dark:text-stone-200"
-											>{$currentUser?.phone_number || 'No especificado'}</span
-										>
-									</div>
-									<div
-										class="rounded-full border-[#A8D7C2] bg-[#E7F3ED] bg-stone-100/80 px-2.5 py-0.5 text-[11px] font-medium text-[#468C6A]"
-									>
-										Teléfono
-									</div>
-								</div>
-
-								<div class="flex items-center justify-between py-3">
-									<div class="flex items-center gap-3">
-										<span class="text-[13px] font-medium text-stone-800 dark:text-stone-200"
-											>{$currentUser?.birth_date
-												? formatDate($currentUser?.birth_date)
-												: 'No especificada'}</span
-										>
-									</div>
-									<div
-										class="rounded-full border border-stone-200/50 bg-stone-100/80 px-2.5 py-0.5 text-[11px] font-medium text-stone-500 dark:border-stone-700/50 dark:bg-stone-800"
-									>
-										Nacimiento
-									</div>
-								</div>
-							</div>
-						{/if}
-					</div>
-				</div>
-
-				<!-- Tarjeta Secundaria: Cambiar Contraseña -->
-				<div
-					class="mt-2 flex flex-col overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-800 dark:bg-stone-900"
-				>
-					<div
-						class="flex items-center justify-between border-b border-stone-100 px-6 py-4 dark:border-stone-800"
-					>
-						<h2 class="text-base font-semibold text-stone-900 dark:text-white">
-							Seguridad de la Cuenta
-						</h2>
-					</div>
-					<div class="p-6">
-						{#if !isEditingPassword}
-							<div
-								class="flex flex-col gap-4 rounded-lg border border-stone-100 bg-stone-50/50 p-5 sm:flex-row sm:items-center sm:justify-between dark:border-stone-800 dark:bg-stone-800/20"
-							>
-								<div class="flex flex-col gap-1.5">
-									<div class="flex items-center gap-2">
-										<LockIcon class="size-4 text-stone-400" />
-										<span class="text-[14px] font-semibold text-stone-800 dark:text-stone-200"
-											>Contraseña de acceso</span
-										>
-									</div>
-									<span class="pl-6 text-[13px] text-stone-500 dark:text-stone-400">
-										Es recomendable usar una contraseña fuerte y única para proteger tu cuenta.
-									</span>
-								</div>
-								<Button
-									variant="outline"
-									class="ml-6 h-[32px] shrink-0 rounded-[4px] border-stone-200 bg-white px-4 text-[13px] font-medium transition-colors hover:bg-stone-50 sm:ml-0 dark:border-stone-700 dark:bg-stone-900 dark:hover:bg-stone-800"
-									onclick={() => (isEditingPassword = true)}
-								>
-									Cambiar contraseña
-								</Button>
-							</div>
-						{:else}
-							<div class="grid grid-cols-1 gap-8 md:grid-cols-2">
-								<div class="flex flex-col gap-4">
-									<div class="flex flex-col gap-1.5">
-										<!-- svelte-ignore a11y_label_has_associated_control -->
-										<label class="text-[12px] font-semibold text-stone-600 dark:text-stone-400"
-											>Contraseña Actual</label
-										>
-										<Input
-											type="password"
-											bind:value={passwordData.currentPassword}
-											placeholder="••••••••"
-											class="h-[36px] rounded-[4px] text-sm"
-										/>
-									</div>
-									<div class="flex flex-col gap-1.5">
-										<!-- svelte-ignore a11y_label_has_associated_control -->
-										<label class="text-[12px] font-semibold text-stone-600 dark:text-stone-400"
-											>Nueva Contraseña</label
-										>
-										<Input
-											type="password"
-											bind:value={passwordData.newPassword}
-											placeholder="Mínimo 6 caracteres"
-											class="h-[36px] rounded-[4px] text-sm"
-										/>
-									</div>
-									<div class="flex flex-col gap-1.5">
-										<!-- svelte-ignore a11y_label_has_associated_control -->
-										<label class="text-[12px] font-semibold text-stone-600 dark:text-stone-400"
-											>Confirmar Contraseña</label
-										>
-										<Input
-											type="password"
-											bind:value={passwordData.confirmPassword}
-											placeholder="Repite la contraseña"
-											class="h-[36px] rounded-[4px] text-sm"
-										/>
-									</div>
-
-									<div class="mt-4 flex flex-col-reverse justify-end gap-3 sm:flex-row">
-										<Button
-											variant="outline"
-											class="h-[32px] w-full rounded-[4px] px-4 text-[13px] font-medium sm:w-auto"
-											onclick={() => {
-												isEditingPassword = false;
-												passwordData = {
-													currentPassword: '',
-													newPassword: '',
-													confirmPassword: ''
-												};
-											}}
-											disabled={isSubmitting}
-										>
-											Cancelar
-										</Button>
-										<Button
-											class="h-[32px] w-full rounded-[4px] bg-stone-900 px-4 text-[13px] font-medium text-white hover:bg-stone-800 sm:w-auto dark:bg-white dark:text-stone-900"
-											onclick={handleChangePassword}
-											disabled={isSubmitting}
-											loading={isSubmitting}
-										>
-											Actualizar Contraseña
-										</Button>
-									</div>
-								</div>
-							</div>
-						{/if}
-					</div>
+						</div>
+					{/if}
 				</div>
 			</div>
 
-			<!-- ══ Lado Derecho (Estrecho) ══ -->
-			<div class="flex flex-col gap-6 lg:col-span-4 lg:mt-0">
-				<!-- Tarjeta About Me -->
-				<div
-					class="flex flex-col rounded-lg border border-stone-200 bg-white p-6 shadow-sm dark:border-stone-800 dark:bg-stone-900"
-				>
-					<h3 class="mb-3 text-base font-semibold text-stone-900 dark:text-white">
-						Información de Cuenta
-					</h3>
-					<p class="mb-5 text-[13px] leading-relaxed text-stone-500 dark:text-stone-400">
-						Detalles administrativos de tu perfil como nivel de permisos y estado actual de uso.
-					</p>
+			<!-- Logout Button -->
+			<div class="mt-4 flex flex-col gap-4">
+				<Button onclick={handleLogout} class="mx-auto">
+					{#snippet leftIcon()}
+						<LogoutIcon class="h-6 w-6" />
+					{/snippet}
+					Cerrar Sesión
+				</Button>
+			</div>
+		{:else}
+			<!-- ─── Edit Password Mode (Separate Block) ─── -->
+			<div class="rounded-[32px] bg-white p-8 shadow-sweet">
+				<div class="mb-2 flex items-center gap-3">
+					<div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-sweet-pink-50">
+						<ShieldCheckIcon class="h-6 w-6 text-sweet-pink-400" />
+					</div>
+					<h2 class="text-xl font-black text-sweet-brown">Seguridad</h2>
+				</div>
+				<p class="mb-8 text-sm font-bold text-sweet-brown/40">
+					Actualiza tu contraseña para mantener tu cuenta segura.
+				</p>
 
-					<div class="flex flex-col gap-4">
-						<div
-							class="flex items-center justify-between border-t border-stone-100 pt-4 dark:border-stone-800/60"
-						>
-							<span class="text-[13px] text-stone-600 dark:text-stone-300">Estado</span>
-							<div class="flex flex-wrap items-center gap-1.5">
-								<div class="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-								<span class="text-[12px] font-medium text-stone-700 dark:text-stone-200"
-									>Activo</span
-								>
-							</div>
+				<div class="flex flex-col gap-6">
+					<div class="space-y-4">
+						<div class="flex flex-col gap-1.5">
+							<!-- svelte-ignore a11y_label_has_associated_control -->
+							<label class="px-1 text-xs font-black text-sweet-brown/40">Nueva Contraseña</label>
+							<Input
+								type="password"
+								bind:value={passwordData.newPassword}
+								placeholder="Mínimo 6 caracteres"
+								class="h-14 rounded-2xl border-none bg-sweet-pink-50/50 px-6 font-bold focus:ring-sweet-pink-200"
+							/>
 						</div>
 
-						<div
-							class="flex items-center justify-between border-t border-stone-100 pt-4 dark:border-stone-800/60"
-						>
-							<span class="text-[13px] text-stone-600 dark:text-stone-300">Rol asignado</span>
-							<span
-								class="rounded border border-stone-200 bg-stone-100 px-2 py-0.5 text-[11px] font-semibold text-stone-600 uppercase dark:border-stone-700 dark:bg-stone-800"
+						<div class="flex flex-col gap-1.5">
+							<!-- svelte-ignore a11y_label_has_associated_control -->
+							<label class="px-1 text-xs font-black text-sweet-brown/40">Confirmar Contraseña</label
 							>
-								{$currentUser?.role}
-							</span>
+							<Input
+								type="password"
+								bind:value={passwordData.confirmPassword}
+								placeholder="Repite tu contraseña"
+								class="h-14 rounded-2xl border-none bg-sweet-pink-50/50 px-6 font-bold focus:ring-sweet-pink-200"
+							/>
 						</div>
+					</div>
 
-						<div
-							class="flex items-center justify-between border-t border-stone-100 pt-4 dark:border-stone-800/60"
+					<div class="mt-4 flex flex-col gap-3 sm:flex-row">
+						<Button
+							variant="outline"
+							onclick={() => (isEditingPassword = false)}
+							class="h-12 flex-1 rounded-2xl border-2 border-sweet-pink-100 font-black text-sweet-pink-400 hover:bg-sweet-pink-50"
 						>
-							<span class="text-[13px] text-stone-600 dark:text-stone-300">Verificación</span>
-							<div class="flex flex-wrap items-center gap-1.5">
-								<div class="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
-								<span class="text-[12px] font-medium text-stone-700 dark:text-stone-200"
-									>Verificado</span
-								>
-							</div>
-						</div>
+							Cancelar
+						</Button>
+						<Button
+							onclick={handleChangePassword}
+							disabled={isSubmitting}
+							loading={isSubmitting}
+							class="sweet-gradient-intense h-12 flex-1 rounded-2xl font-black text-white shadow-md active:scale-95"
+						>
+							Actualizar Contraseña
+						</Button>
 					</div>
 				</div>
 			</div>
-		</div>
+		{/if}
 	</div>
 </MainLayout>

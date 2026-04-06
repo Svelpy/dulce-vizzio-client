@@ -29,3 +29,4 @@ export { default as ShieldIcon } from './shieldIcon.svelte';
 export { default as StarIcon } from './starIcon.svelte';
 export { default as YoutubeIcon } from './youtubeIcon.svelte';
 export { default as FileDescriptionIcon } from './fileDescriptionIcon.svelte';
+export { default as ShieldCheckIcon } from './shieldCheckIcon.svelte';

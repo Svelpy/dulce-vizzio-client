@@ -44,9 +44,21 @@
 	--color-dark-warning: #f59e0b;
 	--color-dark-black: #000000;
 
+	--color-sweet-pink-50: #fff5f7;
+	--color-sweet-pink-100: #ffe1e9;
+	--color-sweet-pink-200: #ffc2d1;
+	--color-sweet-pink-300: #ff8ba7;
+	--color-sweet-pink-400: #ff4d6d;
+	--color-sweet-pink-500: #c9184a;
+	--color-sweet-text: #4a1d2d;
+	--color-sweet-brown: #5c2d39;
+
 	--animate-wiggle: wiggle 1s ease-in-out infinite;
 
 	--screen-dynamic: '100dvh';
+
+	--shadow-sweet: 0 10px 25px -5px rgba(255, 139, 167, 0.2);
+
 	@keyframes wiggle {
 		0%,
 		100% {
@@ -57,10 +69,29 @@
 		}
 	}
 }
+
+@layer utilities {
+	.glass-card {
+		@apply border border-white/50 bg-white/70 backdrop-blur-md;
+	}
+	.sweet-gradient {
+		@apply bg-linear-to-br from-sweet-pink-100 to-sweet-pink-200;
+	}
+	.sweet-gradient-intense {
+		@apply bg-linear-to-br from-sweet-pink-300 to-sweet-pink-400;
+	}
+}
 html,
 body {
 	padding: 0;
 	margin: 0;
+}
+
+/* Padding for mobile bottom nav */
+@media (max-width: 767px) {
+	body {
+		padding-bottom: 5rem;
+	}
 }
 
 ::-webkit-scrollbar {
