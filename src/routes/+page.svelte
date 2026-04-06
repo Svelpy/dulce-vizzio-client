@@ -16,19 +16,36 @@
 
 	// Categories data
 	const categories = [
-		{ title: 'Queques', icon: '🍰', description: 'Queques clásicos y modernos para toda ocasión' },
-		{ title: 'Panadería', icon: '🥖', description: 'Panadería artesanal y técnicas profesionales' },
-		{ title: 'Postres', icon: '🍮', description: 'Postres tradicionales y gourmet' },
 		{
-			title: 'Decoración',
-			icon: '🎨',
-			description: 'Decoración creativa y acabados profesionales'
+			id: 1,
+			name: 'Queques',
+			icon: '🍰',
+			description: 'Queques clásicos y modernos para toda ocasión'
 		},
-		{ title: 'Sin horno', icon: '❄️', description: 'Recetas deliciosas sin necesidad de hornear' },
+		{ id: 2, name: 'Postres', icon: '🍮', description: 'Postres tradicionales y gourmet' },
 		{
-			title: 'Eventos',
+			id: 3,
+			name: 'Eventos',
 			icon: '🎉',
 			description: 'Preparaciones especiales para eventos y celebraciones'
+		},
+		{
+			id: 4,
+			name: 'Panadería',
+			icon: '🥖',
+			description: 'Panadería artesanal y técnicas profesionales'
+		},
+		{
+			id: 5,
+			name: 'Sin Horno',
+			icon: '❄️',
+			description: 'Recetas deliciosas sin necesidad de hornear'
+		},
+		{
+			id: 6,
+			name: 'Otros',
+			icon: '📦',
+			description: 'Diversas preparaciones creativas y complementos'
 		}
 	];
 
@@ -174,7 +191,7 @@
 					></div>
 				</div>
 			{:else if featuredCourses.length > 0}
-				<div class="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-6">
+				<div class="grid grid-cols-2 gap-8 md:grid-cols-3 lg:grid-cols-5">
 					{#each featuredCourses as course (course.id)}
 						<CourseCard
 							{course}
@@ -213,10 +230,9 @@
 			<div class="grid grid-cols-2 gap-6 md:grid-cols-3">
 				{#each categories as category, index (index)}
 					<CategoryCard
-						title={category.title}
+						title={category.name}
 						icon={category.icon}
 						description={category.description}
-						onclick={() => handleCategoryClick(category.title)}
 					/>
 				{/each}
 			</div>
@@ -328,14 +344,14 @@
 						<li class="flex space-x-1">
 							<span class="rounded-full bg-red-500 p-1 text-white"><YoutubeIcon /></span><a
 								target="_blank"
-								href={APP_SITE_CONFIG.APP_YOUTUBE_URL}
+								href={APP_SITE_CONFIG.YOUBUBE_URL}
 								class="transition-colors">Youtube</a
 							>
 						</li>
 						<li class="flex space-x-1">
 							<span class="rounded-full bg-black p-1 text-white"><TikTokIcon /></span><a
 								target="_blank"
-								href={APP_SITE_CONFIG.APP_TIKTOK_URL}
+								href={APP_SITE_CONFIG.TIKTOK_URL}
 								class="transition-colors">Tiktok</a
 							>
 						</li>

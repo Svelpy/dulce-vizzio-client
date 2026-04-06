@@ -20,10 +20,24 @@ const routePermissions: Record<string, Role[]> = {
 };
 
 /**
+ * Public routes that anyone can access, even without being authenticated.
+ */
+export const publicRoutes = [
+	'/app/courses'
+];
+
+/**
  * Centrally managed role-based access control.
  * Verifies if a user role has permission to access a specific path.
  */
-export const canAccessPath = (userRole: string | undefined, path: string): boolean => {
+export const canAccessPath = (userRole: string | undefined | null, path: string): boolean => {
+	// 1. Allow access if it's a public route
+	for (const publicRoute of publicRoutes) {
+		if (path === publicRoute || path.startsWith(publicRoute + '/')) {
+			return true;
+		}
+	}
+
 	if (!userRole) return false;
 
 	// Normalize role

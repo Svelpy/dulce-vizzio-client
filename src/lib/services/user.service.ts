@@ -5,7 +5,8 @@ import type {
 	User,
 	UsersFilters,
 	UsersListResponse,
-	UserRole
+	UserRole,
+	ChangePasswordRequest
 } from '$lib/interfaces';
 
 class UserService {
@@ -62,7 +63,14 @@ class UserService {
 	updateRole(id: string, new_role: UserRole): Promise<{ new_role: UserRole }> {
 		return apiDulceVizzio.patch<{ new_role: UserRole }>(`/users/${id}/role`, {
 			new_role
-		});
+	});
+	}
+
+	/**
+	 * Cambia la contraseña del usuario autenticado
+	 */
+	changePassword(data: ChangePasswordRequest): Promise<string> {
+		return apiDulceVizzio.patch<string>('/auth/me/change-password', data);
 	}
 
 	/**

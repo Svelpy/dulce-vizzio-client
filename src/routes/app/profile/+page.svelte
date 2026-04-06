@@ -14,11 +14,12 @@
 	} from '$lib/icons/outline';
 	import { userService } from '$lib/services';
 	import { CalendarIcon, CameraIcon, LogoutIcon, ShieldCheckIcon } from '$lib/icons/solid';
-	import { cn } from '$lib/utils';
 
 	let isEditing = $state(false);
 	let isEditingPassword = $state(false);
 	let isSubmitting = $state(false);
+
+	let canEdit = $derived($currentUser?.role === 'ADMIN' || $currentUser?.role === 'SUPERADMIN');
 
 	// Avatar
 	let isUploadingAvatar = $state(false);
@@ -36,9 +37,9 @@
 
 	// Form data (Password)
 	let passwordData = $state({
-		currentPassword: '',
-		newPassword: '',
-		confirmPassword: ''
+		current_password: '',
+		new_password: '',
+		confirm_password: ''
 	});
 
 	onMount(() => {
@@ -60,7 +61,7 @@
 	}
 
 	async function handleUpdateProfile() {
-		if (!$currentUser) return;
+		if (!$currentUser || !canEdit) return;
 
 		if (!formData.full_name || !formData.username) {
 			alert('error', 'Nombre y usuario son requeridos');
@@ -82,24 +83,24 @@
 	}
 
 	async function handleChangePassword() {
-		if (passwordData.newPassword.length < 6) {
-			alert('error', 'La contraseña debe tener al menos 6 caracteres');
+		if (passwordData.new_password.length < 8) {
+			alert('error', 'La nueva contraseña debe tener al menos 8 caracteres');
 			return;
 		}
-		if (passwordData.newPassword !== passwordData.confirmPassword) {
+		if (passwordData.new_password !== passwordData.confirm_password) {
 			alert('error', 'Las contraseñas no coinciden');
 			return;
 		}
 
 		isSubmitting = true;
 		try {
-			await userService.resetPassword($currentUser!.id, passwordData.newPassword);
+			await userService.changePassword(passwordData);
 			alert('success', 'Contraseña actualizada correctamente');
-			passwordData = { currentPassword: '', newPassword: '', confirmPassword: '' };
+			passwordData = { current_password: '', new_password: '', confirm_password: '' };
 			isEditingPassword = false;
 		} catch (error) {
 			console.error('Error changing password:', error);
-			alert('error', 'Error al cambiar la contraseña');
+			alert('error', 'Error al cambiar la contraseña. Verifica tu contraseña actual.');
 		} finally {
 			isSubmitting = false;
 		}
@@ -233,10 +234,18 @@
 								class="mt-2 flex items-center gap-2 rounded-full bg-sweet-pink-50 px-4 py-1.5 text-xs font-black text-sweet-pink-500"
 							>
 								<UserIcon class="h-3.5 w-3.5" />
-								{$currentUser?.role === 'ADMIN' ? 'Administrador' : 'Usuario'}
+								{#if $currentUser?.role === 'SUPERADMIN'}
+									Super Admin
+								{:else}
+									{$currentUser?.role === 'ADMIN'
+										? 'Administrador'
+										: $currentUser?.role === 'MODERATOR'
+											? 'Moderador'
+											: 'Usuario'}
+								{/if}
 							</div>
 
-							{#if !isEditing}
+							{#if !isEditing && canEdit}
 								<Button
 									onclick={() => (isEditing = true)}
 									class="sweet-gradient-intense mt-4 h-11 rounded-2xl px-10 text-sm font-black text-white shadow-sweet"
@@ -475,11 +484,22 @@
 					<div class="space-y-4">
 						<div class="flex flex-col gap-1.5">
 							<!-- svelte-ignore a11y_label_has_associated_control -->
+							<label class="px-1 text-xs font-black text-sweet-brown/40">Contraseña Actual</label>
+							<Input
+								type="password"
+								bind:value={passwordData.current_password}
+								placeholder="Tu contraseña actual"
+								class="h-14 rounded-2xl border-none bg-sweet-pink-50/50 px-6 font-bold focus:ring-sweet-pink-200"
+							/>
+						</div>
+
+						<div class="flex flex-col gap-1.5">
+							<!-- svelte-ignore a11y_label_has_associated_control -->
 							<label class="px-1 text-xs font-black text-sweet-brown/40">Nueva Contraseña</label>
 							<Input
 								type="password"
-								bind:value={passwordData.newPassword}
-								placeholder="Mínimo 6 caracteres"
+								bind:value={passwordData.new_password}
+								placeholder="Mínimo 8 caracteres"
 								class="h-14 rounded-2xl border-none bg-sweet-pink-50/50 px-6 font-bold focus:ring-sweet-pink-200"
 							/>
 						</div>
@@ -490,8 +510,8 @@
 							>
 							<Input
 								type="password"
-								bind:value={passwordData.confirmPassword}
-								placeholder="Repite tu contraseña"
+								bind:value={passwordData.confirm_password}
+								placeholder="Repite tu nueva contraseña"
 								class="h-14 rounded-2xl border-none bg-sweet-pink-50/50 px-6 font-bold focus:ring-sweet-pink-200"
 							/>
 						</div>
