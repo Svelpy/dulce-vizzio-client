@@ -10,7 +10,7 @@
 	let { class: className, children, ...restProps }: Props = $props();
 </script>
 
-<tbody class={cn('[&_tr:last-child]:border-0', className)} {...restProps}>
+<tbody class={cn('border-light-four [&_tr:last-child]:border-0', className)} {...restProps}>
 	{@render children()}
 </tbody>
 

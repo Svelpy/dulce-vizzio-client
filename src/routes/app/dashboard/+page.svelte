@@ -7,6 +7,7 @@
 	import { Heading, MainLayout } from '$lib/components/ui';
 	import { redirect } from '$lib/utils';
 	import { DashboardSkeleton } from '$lib/components/skeletons/dashboard';
+	import { ChevronsRightIcon } from '$lib/icons/outline';
 
 	let myEnrollments: Enrollment[] = $state([]);
 	let enrolledCourses: Course[] = $state([]);
@@ -79,11 +80,6 @@
 	const handleCourseClick = (slug: string) => {
 		redirect(`/app/courses/${slug}`);
 	};
-
-	const calculateProgress = (enrollment: Enrollment, course: Course): number => {
-		if (!course.lessons_count) return 0;
-		return enrollment.completed_at ? 100 : Math.floor(Math.random() * 60) + 10;
-	};
 </script>
 
 <MainLayout
@@ -95,36 +91,33 @@
 		<DashboardSkeleton />
 	{:else}
 		<div class="relative space-y-10">
-			<!-- Background Decorations (Optional subtle touches) -->
-			<div class="pointer-events-none absolute -top-10 -right-10 overflow-hidden opacity-10">
+			<!-- <div class="pointer-events-none absolute -top-10 -right-10 overflow-hidden opacity-10">
 				<div class="flex flex-wrap gap-20">
 					{#each Array(5) as __, i (i)}
 						<span class="text-9xl text-sweet-pink-300">💕</span>
 					{/each}
 				</div>
-			</div>
+			</div> -->
 
-			<!-- Welcome Header -->
 			<div class="relative z-10 px-2 lg:px-0">
 				<Heading level="h4">
 					{greeting}
 				</Heading>
 			</div>
 
-			<!-- Enrolled Courses Section (Horizontal Scroll) -->
 			{#if enrolledCourses.length > 0}
 				<div class="space-y-6">
 					<div class="flex items-center justify-between px-2">
 						<div class="flex items-center gap-2">
 							<span class="text-sweet-pink-300">💕</span>
-							<h2 class="text-xl font-black text-sweet-brown">Tus Cursos Actuales</h2>
+							<Heading level="h3">Tus Cursos Actuales</Heading>
 							<span class="text-sweet-pink-300">💕</span>
 						</div>
 						<button
 							onclick={() => redirect('/app/my-enrollments')}
-							class="text-sm font-bold text-sweet-pink-400 decoration-2 transition-all hover:underline"
+							class="flex text-sm font-bold text-sweet-pink-400 decoration-2 transition-all hover:underline"
 						>
-							Ver Todos >
+							Ver Todos <ChevronsRightIcon />
 						</button>
 					</div>
 
@@ -158,7 +151,6 @@
 				</div>
 			{/if}
 
-			<!-- Recommended Courses Section (Grid) -->
 			{#if recommendedCourses.length > 0}
 				<div class="space-y-6">
 					<div class="flex items-center justify-between px-2 text-sweet-brown">
@@ -169,9 +161,9 @@
 						</div>
 						<button
 							onclick={() => redirect('/app/courses')}
-							class="text-sm font-bold text-sweet-pink-400 transition-all hover:underline"
+							class="flex text-sm font-bold text-sweet-pink-400 transition-all hover:underline"
 						>
-							Explorar >
+							Explorar <ChevronsRightIcon />
 						</button>
 					</div>
 

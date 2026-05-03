@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { enrollmentService } from '$lib/services';
 	import type { EnrollmentStatus, EnrollmentListResponse } from '$lib/interfaces';
-	import { MainLayout, Pagination, Button } from '$lib/components/ui';
+	import { MainLayout, Pagination, Button, Heading } from '$lib/components/ui';
 	import EnrollmentFilters from '$lib/components/features/enrollments/EnrollmentFilters.svelte';
 	import { CourseCardSkeleton } from '$lib/components/skeletons/course';
 
@@ -85,7 +85,7 @@
 </script>
 
 <MainLayout title="Mis Cursos | Dulce Vizzio" class="container mx-auto">
-	<div class="relative space-y-6 lg:space-y-8">
+	<div class="relative space-y-6">
 		<!-- Background Decorations -->
 		<div class="pointer-events-none absolute -top-10 -right-10 overflow-hidden opacity-10">
 			<div class="flex flex-wrap gap-20">
@@ -99,9 +99,7 @@
 			<!-- Header -->
 			<div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
-					<h1 class="text-3xl font-black tracking-tight text-sweet-brown lg:text-4xl">
-						Mis Cursos
-					</h1>
+					<Heading level="h4">Mis Cursos</Heading>
 				</div>
 			</div>
 

@@ -2,7 +2,7 @@
 	import type { User, DropdownOption } from '$lib/interfaces';
 	import { TableRow, TableCell, Badge, DropdownMenu } from '$lib/components/ui';
 	import { LockIcon, ShieldIcon } from '$lib/icons/solid';
-	import { PencilIcon, TrashIcon, DotsVerticalIcon } from '$lib/icons/outline';
+	import { PencilIcon, TrashIcon, DotsVerticalIcon, CheckIcon, XMarkIcon } from '$lib/icons/outline';
 	import { formatDate } from '$lib/utils';
 
 	interface Props {
@@ -11,9 +11,10 @@
 		onDelete: (user: User) => void;
 		onResetPassword: (user: User) => void;
 		onUpdateRole: (user: User) => void;
+		onToggleActive: (user: User) => void;
 	}
 
-	let { user, onAction, onDelete, onResetPassword, onUpdateRole }: Props = $props();
+	let { user, onAction, onDelete, onResetPassword, onUpdateRole, onToggleActive }: Props = $props();
 
 	let menuOpen = $state(false);
 
@@ -53,6 +54,15 @@
 				icon: ShieldIcon,
 				action: () => {
 					onUpdateRole(user);
+					menuOpen = false;
+				}
+			},
+			{
+				id: 'toggle-active',
+				label: user.is_active ? 'Desactivar usuario' : 'Activar usuario',
+				icon: user.is_active ? XMarkIcon : CheckIcon,
+				action: () => {
+					onToggleActive(user);
 					menuOpen = false;
 				}
 			},

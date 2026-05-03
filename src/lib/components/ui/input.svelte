@@ -27,7 +27,7 @@
 		<input
 			{...restProps}
 			bind:value
-			class="block w-full rounded-md border border-light-four bg-light-one py-2 text-sm text-light-two ring-light-two transition-all placeholder:text-xs placeholder:text-light-two_d hover:ring-1 hover:ring-light-two_d focus:ring-2 focus:ring-light-two sm:text-base sm:leading-6 placeholder:sm:text-sm {icon &&
+			class="block w-full rounded-md border border-light-four bg-light-one py-2 text-sm text-light-two ring-light-two transition-all placeholder:text-xs placeholder:text-light-five/30 hover:ring-1 hover:ring-light-two_d focus:ring-2 focus:ring-light-two sm:text-base sm:leading-6 placeholder:sm:text-sm {icon &&
 				'col-start-1 row-start-1 pl-10'} "
 		/>
 		{#if icon}

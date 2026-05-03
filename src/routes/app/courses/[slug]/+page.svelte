@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import { MainLayout, Button } from '$lib/components/ui';
+	import { MainLayout, Button, ModalConfirm } from '$lib/components/ui';
 	import type { CourseDetail, CourseLesson } from '$lib/interfaces';
 	import { courseService } from '$lib/services';
+	import { alert } from '$lib/utils';
 	import {
 		ClockIcon,
 		EyeOffIcon,
@@ -12,19 +13,34 @@
 		DownloadIcon,
 		PhotoIcon,
 		ClipboardIcon,
-		PlusIcon
+		ChevronUpIcon,
+		ChevronDownIcon,
+		PencilIcon,
+		LoaderIcon,
+		PlusIcon,
+		TrashIcon
 	} from '$lib/icons/outline';
 	import { BookIcon, FileDescriptionIcon, HomeIcon, LockIcon } from '$lib/icons/solid';
 	import { currentUser } from '$lib/stores/auth.store';
 	import { Role } from '$lib/constants/roles';
-	import { MaterialUploadModal, CreateLessonModal } from '$lib/components/features/course';
+	import { MaterialUploadModal, LessonModal } from '$lib/components/features/course';
 
 	let course = $state<CourseDetail | null>(null);
 	let currentLesson = $state<CourseLesson | null>(null);
 	let loading = $state(true);
 	let error = $state('');
 	let isUploadModalOpen = $state(false);
-	let isCreateLessonModalOpen = $state(false);
+	let isLessonModalOpen = $state(false);
+	let lessonToEdit = $state<CourseLesson | null>(null);
+	let deletingMaterial = $state(false);
+	let isDeleteModalOpen = $state(false);
+	let materialToDelete = $state<{ lessonId: string; order: number } | null>(null);
+	let isLessonDeleteModalOpen = $state(false);
+	let lessonToDelete = $state<CourseLesson | null>(null);
+	let deletingLesson = $state(false);
+	let reorderingLessonId = $state<string | null>(null);
+	let isDeleteAllMaterialsModalOpen = $state(false);
+	let deletingAllMaterials = $state(false);
 
 	const slug = $derived($page.params.slug);
 	const isAdmin = $derived(
@@ -146,6 +162,104 @@
 			window.open(whatsappURL, '_blank');
 		}
 	};
+
+	function handleDeleteMaterial(lessonId: string, order: number) {
+		materialToDelete = { lessonId, order };
+		isDeleteModalOpen = true;
+	}
+
+	async function confirmDeleteMaterial() {
+		if (!materialToDelete) return;
+
+		try {
+			deletingMaterial = true;
+			await courseService.deleteMaterial(materialToDelete.lessonId, materialToDelete.order);
+			await loadCourse();
+			alert('success', 'Material eliminado correctamente');
+			isDeleteModalOpen = false;
+			materialToDelete = null;
+		} catch (err) {
+			console.error('Error deleting material:', err);
+			alert('error', 'Error al eliminar el material');
+		} finally {
+			deletingMaterial = false;
+		}
+	}
+
+	function openCreateLessonModal() {
+		lessonToEdit = null;
+		isLessonModalOpen = true;
+	}
+
+	function handleEditLesson(lesson: CourseLesson) {
+		lessonToEdit = lesson;
+		isLessonModalOpen = true;
+	}
+
+	function handleDeleteLesson(lesson: CourseLesson) {
+		lessonToDelete = lesson;
+		isLessonDeleteModalOpen = true;
+	}
+
+	async function confirmDeleteLesson() {
+		if (!lessonToDelete) return;
+
+		try {
+			deletingLesson = true;
+			await courseService.deleteLesson(lessonToDelete.id);
+			await loadCourse();
+			alert('success', 'Lección eliminada correctamente');
+			isLessonDeleteModalOpen = false;
+			lessonToDelete = null;
+		} catch (err) {
+			console.error('Error deleting lesson:', err);
+			alert('error', 'Error al eliminar la lección');
+		} finally {
+			deletingLesson = false;
+		}
+	}
+
+	async function handleReorderLesson(lesson: CourseLesson, newOrder: number) {
+		if (newOrder < 1 || newOrder > (course?.lessons.length || 0)) return;
+
+		try {
+			reorderingLessonId = lesson.id;
+			const updatedLessons = await courseService.reorderLesson(lesson.id, newOrder);
+			if (course) {
+				// Map the returned Lesson objects back to CourseLesson if necessary
+				// In this case they are compatible enough for display
+				course.lessons = updatedLessons as any;
+			}
+			alert('success', 'Orden de lección actualizado');
+		} catch (err) {
+			console.error('Error reordering lesson:', err);
+			alert('error', 'Error al reordenar la lección');
+		} finally {
+			reorderingLessonId = null;
+		}
+	}
+
+	function handleDeleteAllMaterials() {
+		if (!currentLesson) return;
+		isDeleteAllMaterialsModalOpen = true;
+	}
+
+	async function confirmDeleteAllMaterials() {
+		if (!currentLesson) return;
+
+		try {
+			deletingAllMaterials = true;
+			await courseService.deleteAllMaterials(currentLesson.id);
+			await loadCourse();
+			alert('success', 'Todos los materiales han sido eliminados');
+			isDeleteAllMaterialsModalOpen = false;
+		} catch (err) {
+			console.error('Error deleting all materials:', err);
+			alert('error', 'Error al eliminar los materiales');
+		} finally {
+			deletingAllMaterials = false;
+		}
+	}
 </script>
 
 <MainLayout
@@ -166,7 +280,7 @@
 		<div class="relative z-10 px-2 lg:px-0">
 			{#if loading}
 				<!-- Loading State -->
-				<div class="glass-card flex flex-col rounded-[2rem] p-6 shadow-sweet lg:p-8">
+				<div class="glass-card flex flex-col rounded-3xl p-6 shadow-sweet lg:p-8">
 					<div class="mb-6 h-8 w-64 animate-pulse rounded-lg bg-slate-200"></div>
 					<div class="grid gap-6 lg:grid-cols-3">
 						<div class="lg:col-span-2">
@@ -268,15 +382,6 @@
 												class="absolute inset-0 h-full w-full"
 											></iframe>
 										</div>
-										<!-- <div style="position:relative;padding-top:56.25%;">
-											<iframe
-												src="https://player.mediadelivery.net/embed/630797/11a622a1-93c1-4a1b-8f91-8c1ad9897fe2?autoplay=true&loop=false&muted=false&preload=true&responsive=true"
-												loading="lazy"
-												style="border:0;position:absolute;top:0;height:100%;width:100%;"
-												allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;"
-												allowfullscreen="true"
-											></iframe>
-										</div> -->
 									{:else}
 										<div class="flex aspect-video items-center justify-center">
 											<div class="text-center text-white">
@@ -313,6 +418,20 @@
 																{/snippet}
 																Material
 															</Button>
+
+															{#if currentLesson.materials.length > 0}
+																<Button
+																	variant="ghost"
+																	size="sm"
+																	onclick={handleDeleteAllMaterials}
+																	class="text-red-500 hover:bg-red-50"
+																>
+																	{#snippet leftIcon()}
+																		<TrashIcon class="h-4 w-4" />
+																	{/snippet}
+																	Limpiar
+																</Button>
+															{/if}
 														{/if}
 													</div>
 												</div>
@@ -342,6 +461,21 @@
 																		>
 																			{material.title}
 																		</span>
+																		{#if isAdmin}
+																			<button
+																				class="rounded-lg p-1 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
+																				onclick={(e) => {
+																					e.stopPropagation();
+																					handleDeleteMaterial(
+																						currentLesson?.id || '',
+																						material.order
+																					);
+																				}}
+																				title="Eliminar material"
+																			>
+																				<TrashIcon class="h-4 w-4" />
+																			</button>
+																		{/if}
 																	</div>
 																	<div class="flex items-center gap-3 text-xs text-slate-500">
 																		<span class="font-bold uppercase"
@@ -434,7 +568,7 @@
 												<Button
 													variant="ghost"
 													size="sm"
-													onclick={() => (isCreateLessonModalOpen = true)}
+													onclick={openCreateLessonModal}
 													class="text-light-four hover:bg-light-four/10"
 												>
 													{#snippet leftIcon()}
@@ -467,20 +601,51 @@
 											>
 												<div class="flex items-start gap-4">
 													<div
-														class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] shadow-sm transition-transform group-hover:scale-105 {isActive
+														class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] shadow-sm transition-transform group-hover:scale-105 {isActive ||
+														reorderingLessonId === lesson.id
 															? 'bg-sweet-pink-400 text-white'
 															: canAccess
 																? 'bg-white text-sweet-pink-400'
 																: 'bg-slate-100 text-slate-400'}"
 													>
-														{#if !canAccess}
+														{#if reorderingLessonId === lesson.id}
+															<LoaderIcon class="h-5 w-5 animate-spin" />
+														{:else if !canAccess}
 															<LockIcon class="h-4 w-4" />
-														{:else if isActive}
+														{:else if isActive && !isAdmin}
 															<PlayerPlayIcon class="h-5 w-5" />
 														{:else}
 															<span class="text-sm font-black">{lesson.order}</span>
 														{/if}
 													</div>
+
+													{#if isAdmin}
+														<div class="flex flex-col gap-0.5">
+															<button
+																class="hover:text-sweet-pink-600 rounded-md p-0.5 text-sweet-pink-300 transition-colors hover:bg-sweet-pink-100 disabled:opacity-30"
+																onclick={(e) => {
+																	e.stopPropagation();
+																	handleReorderLesson(lesson, lesson.order - 1);
+																}}
+																disabled={lesson.order === 1 || !!reorderingLessonId}
+																title="Subir orden"
+															>
+																<ChevronUpIcon class="h-3.5 w-3.5" />
+															</button>
+															<button
+																class="hover:text-sweet-pink-600 rounded-md p-0.5 text-sweet-pink-300 transition-colors hover:bg-sweet-pink-100 disabled:opacity-30"
+																onclick={(e) => {
+																	e.stopPropagation();
+																	handleReorderLesson(lesson, lesson.order + 1);
+																}}
+																disabled={lesson.order === course?.lessons.length ||
+																	!!reorderingLessonId}
+																title="Bajar orden"
+															>
+																<ChevronDownIcon class="h-3.5 w-3.5" />
+															</button>
+														</div>
+													{/if}
 
 													<div class="min-w-0 flex-1">
 														<div class="mb-1 flex items-start justify-between gap-2">
@@ -491,13 +656,37 @@
 															>
 																{lesson.title}
 															</h4>
-															{#if lesson.is_preview}
-																<span
-																	class="shrink-0 rounded-lg bg-green-100 px-2 py-0.5 text-xs font-black text-green-700"
-																>
-																	Gratis
-																</span>
-															{/if}
+															<div class="flex items-center gap-2">
+																{#if lesson.is_preview}
+																	<span
+																		class="shrink-0 rounded-lg bg-green-100 px-2 py-0.5 text-xs font-black text-green-700"
+																	>
+																		Gratis
+																	</span>
+																{/if}
+																{#if isAdmin}
+																	<button
+																		class="rounded-lg p-1 text-slate-400 transition-colors hover:bg-sweet-pink-50 hover:text-sweet-pink-500"
+																		onclick={(e) => {
+																			e.stopPropagation();
+																			handleEditLesson(lesson);
+																		}}
+																		title="Editar lección"
+																	>
+																		<PencilIcon class="h-4 w-4" />
+																	</button>
+																	<button
+																		class="rounded-lg p-1 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
+																		onclick={(e) => {
+																			e.stopPropagation();
+																			handleDeleteLesson(lesson);
+																		}}
+																		title="Eliminar lección"
+																	>
+																		<TrashIcon class="h-4 w-4" />
+																	</button>
+																{/if}
+															</div>
 														</div>
 														<p class="mb-2 line-clamp-2 text-sm font-medium text-sweet-pink-400/80">
 															{lesson.summary}
@@ -551,16 +740,38 @@
 			{/if}
 
 			{#if course && isAdmin}
-				<CreateLessonModal
-					isOpen={isCreateLessonModalOpen}
-					courseId={course.id}
-					onClose={() => (isCreateLessonModalOpen = false)}
-					onSuccess={() => {
-						isCreateLessonModalOpen = false;
-						loadCourse(); // Reload to get updated lessons
-					}}
+				<LessonModal
+					isOpen={isLessonModalOpen}
+					courseId={course?.id || ''}
+					lesson={lessonToEdit}
+					onClose={() => (isLessonModalOpen = false)}
+					onSuccess={loadCourse}
 				/>
 			{/if}
+
+			<ModalConfirm
+				isOpen={isDeleteModalOpen}
+				message="¿Estás seguro de que deseas eliminar este material? Esta acción no se puede deshacer."
+				onConfirm={confirmDeleteMaterial}
+				onCancel={() => (isDeleteModalOpen = false)}
+				loading={deletingMaterial}
+			/>
+
+			<ModalConfirm
+				isOpen={isLessonDeleteModalOpen}
+				message={`¿Estás seguro de que deseas eliminar la lección "${lessonToDelete?.title}"? Esta acción no se puede deshacer y eliminará todos sus materiales asociados.`}
+				onConfirm={confirmDeleteLesson}
+				onCancel={() => (isLessonDeleteModalOpen = false)}
+				loading={deletingLesson}
+			/>
+
+			<ModalConfirm
+				isOpen={isDeleteAllMaterialsModalOpen}
+				message={`¿Estás seguro de que deseas eliminar TODOS los materiales de la lección "${currentLesson?.title}"? Esta acción no se puede deshacer.`}
+				onConfirm={confirmDeleteAllMaterials}
+				onCancel={() => (isDeleteAllMaterialsModalOpen = false)}
+				loading={deletingAllMaterials}
+			/>
 		</div>
 	</div>
 </MainLayout>

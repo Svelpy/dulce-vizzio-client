@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { BookIcon, ChefHatIcon } from '$lib/icons/outline';
+	import { BookIcon } from '$lib/icons/outline';
+	import { ChefHatIcon } from '$lib/icons/solid';
 	import type { Course } from '$lib/interfaces';
 	import { cn } from '$lib/utils';
 
@@ -15,7 +16,7 @@
 <div
 	class={cn(
 		'group relative flex flex-col overflow-hidden rounded-3xl transition-all duration-300 hover:scale-[1.02]',
-		variant === 'enrolled' ? 'w-64 shrink-0 bg-white shadow-sm' : 'w-full bg-white shadow-md'
+		variant === 'enrolled' ? 'w-64 shrink-0 bg-white shadow-sm' : 'w-full bg-light-one_d'
 	)}
 	onclick={() => onclick?.()}
 >
