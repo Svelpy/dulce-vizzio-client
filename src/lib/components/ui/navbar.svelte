@@ -55,7 +55,7 @@
 </script>
 
 <nav
-	class="relative z-30 border-b-4 border-sweet-pink-100 bg-light-one backdrop-blur-md transition-colors duration-300"
+	class="relative z-10 border-b-4 border-sweet-pink-100 bg-light-one backdrop-blur-md transition-colors duration-300"
 >
 	<div class="w-full px-4">
 		<div class="flex h-16 w-full items-center justify-between">

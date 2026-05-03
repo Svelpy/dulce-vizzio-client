@@ -7,7 +7,8 @@
 		Button,
 		MainLayout,
 		DropdownMenu,
-		ModalConfirm
+		ModalConfirm,
+		Heading
 	} from '$lib/components/ui';
 	import { courseService } from '$lib/services';
 	import { authStore } from '$lib/stores';
@@ -34,9 +35,16 @@
 		FiltersIcon,
 		ChevronLeftIcon,
 		ZoomIcon,
-		ChevronsRightIcon
+		ChevronsRightIcon,
+		PhotoIcon,
+		TagIcon
 	} from '$lib/icons/outline';
-	import { CourseModal, CreateLessonModal } from '$lib/components/features/course';
+	import {
+		CourseModal,
+		CreateLessonModal,
+		CourseCoverModal,
+		CourseStatusModal
+	} from '$lib/components/features/course';
 	import { CourseCardSkeleton } from '$lib/components/skeletons/course';
 	import { cn } from '$lib/utils';
 
@@ -47,6 +55,8 @@
 	let isModalOpen = $state(false);
 	let isCourseModalOpen = $state(false);
 	let isCreateLessonModalOpen = $state(false);
+	let isCoverModalOpen = $state(false);
+	let isStatusModalOpen = $state(false);
 	let selectedCourse = $state<Course | null>(null);
 	let isSubmittingCourse = $state(false);
 	let openDropdownId = $state<string | null>(null);
@@ -80,12 +90,6 @@
 	function getCourseOptions(course: Course): DropdownOption[] {
 		return [
 			{
-				id: 'enroll',
-				label: 'Inscribir Alumno',
-				icon: PlusIcon,
-				action: () => openEnrollmentModal(course)
-			},
-			{
 				id: 'edit',
 				label: 'Editar Curso',
 				icon: PencilIcon,
@@ -96,6 +100,25 @@
 				label: 'Agregar Lección',
 				icon: BookIcon,
 				action: () => openCreateLessonModal(course)
+			},
+			{
+				id: 'status',
+				label: 'Cambiar Estado',
+				icon: TagIcon,
+				action: () => openStatusModal(course)
+			},
+			{
+				id: 'cover',
+				label: 'Cambiar Portada',
+				icon: PhotoIcon,
+				action: () => openCoverModal(course)
+			},
+			{
+				id: 'enroll',
+				label: 'Inscribir Alumno',
+				icon: PlusIcon,
+				action: () => openEnrollmentModal(course),
+				divider: true
 			},
 			{
 				id: 'delete',
@@ -152,6 +175,16 @@
 		isCourseModalOpen = true;
 	}
 
+	function openCoverModal(course: Course) {
+		selectedCourse = course;
+		isCoverModalOpen = true;
+	}
+
+	function openStatusModal(course: Course) {
+		selectedCourse = course;
+		isStatusModalOpen = true;
+	}
+
 	async function handleCourseSubmit(data: CreateCourseRequest | UpdateCourseRequest) {
 		isSubmittingCourse = true;
 		try {
@@ -198,6 +231,7 @@
 
 			const response = await courseService.getAll(filters);
 			courses = response.data;
+			console.log(response.data);
 			totalCourses = response.total;
 			totalPages = response.pages;
 		} catch (error) {
@@ -241,198 +275,187 @@
 	title="Cursos"
 	description="Explora nuestros cursos de repostería"
 	noIndex={true}
-	class="bg-sweet-pink-50/20"
+	class="container mx-auto space-y-8"
 >
-	<div class="space-y-8 pb-32">
-		<!-- ─── Header Section ─── -->
-		<div class="flex flex-col items-start justify-between gap-4 px-2 sm:flex-row sm:items-center">
-			<div>
-				<h1 class="flex items-center gap-2 text-3xl font-black text-sweet-brown">
-					Explorar Cursos 🧁
-				</h1>
-				<p class="mt-1 text-sm font-bold text-sweet-brown/40">
-					Descubre deliciosos cursos de repostería
-				</p>
-			</div>
-
-			{#if $authStore.user?.role === Role.SUPERADMIN || $authStore.user?.role === Role.ADMIN}
-				<Button
-					onclick={openCreateCourseModal}
-					class="sweet-gradient-intense h-11 rounded-2xl px-6 text-sm font-black text-white shadow-sweet active:scale-95"
-				>
-					<PlusIcon class="mr-2 h-5 w-5" />
-					<span>Nuevo Curso</span>
-				</Button>
-			{/if}
+	<div class="flex flex-col items-start justify-between gap-4 px-2 sm:flex-row sm:items-center">
+		<div>
+			<Heading level="h4">Explorar Cursos 🧁</Heading>
 		</div>
 
-		<!-- ─── Optimized Filters Section ─── -->
-		<div class="flex flex-col gap-6 px-2">
-			<!-- Search and Status row -->
-			<div class="flex flex-col gap-4 md:flex-row">
-				<div class="relative flex-1">
-					<Input
-						bind:value={searchQuery}
-						placeholder="Buscar cursos..."
-						oninput={handleSearchInput}
-						icon={ZoomIcon}
-					/>
-				</div>
+		{#if $authStore.user?.role === Role.SUPERADMIN || $authStore.user?.role === Role.ADMIN}
+			<Button onclick={openCreateCourseModal}>
+				<PlusIcon class="mr-2 h-5 w-5" />
+				<span>Nuevo Curso</span>
+			</Button>
+		{/if}
+	</div>
 
-				<div class="flex flex-col gap-4 sm:flex-row">
-					{#if $authStore.user?.role === Role.SUPERADMIN || $authStore.user?.role === Role.ADMIN}
-						<div class="min-w-[200px]">
-							<Select bind:value={selectedStatus} onchange={handleFilterChange}>
-								{#each statuses as status, index (index)}
-									<option value={status.value}>{status.label}</option>
-								{/each}
-							</Select>
-						</div>
-					{/if}
+	<div class="flex flex-col gap-6 px-2">
+		<div class="flex flex-col gap-4 md:flex-row">
+			<div class="relative flex-1">
+				<Input
+					bind:value={searchQuery}
+					placeholder="Buscar cursos..."
+					oninput={handleSearchInput}
+					icon={ZoomIcon}
+				/>
+			</div>
 
+			<div class="flex flex-col gap-4 sm:flex-row">
+				{#if $authStore.user?.role === Role.SUPERADMIN || $authStore.user?.role === Role.ADMIN}
 					<div class="min-w-[200px]">
-						<Select bind:value={selectedDifficulty} onchange={handleFilterChange}>
-							{#each difficulties as diff, index (index)}
-								<option value={diff.value}>{diff.label}</option>
+						<Select bind:value={selectedStatus} onchange={handleFilterChange}>
+							{#each statuses as status, index (index)}
+								<option value={status.value}>{status.label}</option>
 							{/each}
 						</Select>
 					</div>
+				{/if}
+
+				<div class="min-w-[200px]">
+					<Select bind:value={selectedDifficulty} onchange={handleFilterChange}>
+						{#each difficulties as diff, index (index)}
+							<option value={diff.value}>{diff.label}</option>
+						{/each}
+					</Select>
 				</div>
 			</div>
+		</div>
 
-			<div class="scrollbar-none flex items-center gap-3 overflow-x-auto pb-4">
-				{#each categories as category, index (index)}
-					<button
-						onclick={() => handleCategoryChange(category.id)}
-						class={cn(
-							'flex shrink-0 items-center gap-2 rounded-2xl border-2 px-5 py-2.5 text-sm font-black transition-all duration-300',
-							selectedCategory === category.id
-								? 'sweet-gradient-intense border-transparent text-white shadow-sweet'
-								: 'border-white bg-white/60 text-sweet-brown/60 ring-2 ring-transparent hover:border-sweet-pink-100 hover:ring-sweet-pink-50'
-						)}
-					>
-						{#if category.id === ''}
-							<FiltersIcon class="h-4 w-4" />
-						{:else}
-							<span class="text-base">{category.icon}</span>
-						{/if}
-						{category.name}
-					</button>
+		<div class="scrollbar-none flex items-center gap-3 overflow-x-auto pb-4">
+			{#each categories as category, index (index)}
+				<button
+					onclick={() => handleCategoryChange(category.id)}
+					class={cn(
+						'flex shrink-0 items-center gap-2 rounded-2xl border-2 px-5 py-2.5 text-sm font-black transition-all duration-300',
+						selectedCategory === category.id
+							? 'sweet-gradient-intense border-transparent text-white shadow-sweet'
+							: 'border-white bg-white/60 text-sweet-brown/60 ring-2 ring-transparent hover:border-sweet-pink-100 hover:ring-sweet-pink-50'
+					)}
+				>
+					{#if category.id === ''}
+						<FiltersIcon class="h-4 w-4" />
+					{:else}
+						<span class="text-base">{category.icon}</span>
+					{/if}
+					{category.name}
+				</button>
+			{/each}
+		</div>
+	</div>
+	<div class="px-2">
+		<div class="mb-6 flex items-center gap-2">
+			<div class="h-1.5 w-1.5 rounded-full bg-sweet-pink-300"></div>
+			<h3 class="text-xl font-black text-sweet-brown">Todos los Cursos</h3>
+			<div class="h-1.5 w-1.5 rounded-full bg-sweet-pink-300"></div>
+		</div>
+
+		{#if loading}
+			<div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+				{#each Array(6) as _, index (index)}
+					<CourseCardSkeleton />
 				{/each}
 			</div>
-		</div>
-
-		<!-- ─── Course Listing Grid ─── -->
-		<div class="px-2">
-			<div class="mb-6 flex items-center gap-2">
-				<div class="h-1.5 w-1.5 rounded-full bg-sweet-pink-300"></div>
-				<h3 class="text-xl font-black text-sweet-brown">Todos los Cursos</h3>
-				<div class="h-1.5 w-1.5 rounded-full bg-sweet-pink-300"></div>
+		{:else if courses.length > 0}
+			<div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+				{#each courses as course (course.id)}
+					<CourseCard
+						{course}
+						statusVisible={true}
+						onclick={() => handleCourseClick(course.slug)}
+					>
+						{#snippet actions()}
+							{#if $authStore.user?.role === Role.SUPERADMIN || $authStore.user?.role === Role.ADMIN}
+								<div class="relative">
+									<button
+										class="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/90 text-sweet-pink-400 shadow-md backdrop-blur-sm transition-all hover:bg-sweet-pink-400 hover:text-white"
+										onclick={(e) => {
+											e.stopPropagation();
+											toggleDropdown(course.id);
+										}}
+									>
+										<DotsVerticalIcon class="h-5 w-5" />
+									</button>
+									<DropdownMenu
+										isOpen={openDropdownId === course.id}
+										options={getCourseOptions(course)}
+										width={190}
+										class="absolute top-12 right-0 z-50 rounded-2xl border-none p-2 shadow-sweet"
+									/>
+								</div>
+							{/if}
+						{/snippet}
+					</CourseCard>
+				{/each}
 			</div>
 
-			{#if loading}
-				<div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
-					{#each Array(6) as _, index (index)}
-						<CourseCardSkeleton />
-					{/each}
-				</div>
-			{:else if courses.length > 0}
-				<div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
-					{#each courses as course (course.id)}
-						<CourseCard {course} onclick={() => handleCourseClick(course.slug)}>
-							{#snippet actions()}
-								{#if $authStore.user?.role === Role.SUPERADMIN || $authStore.user?.role === Role.ADMIN}
-									<div class="relative">
-										<button
-											class="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/90 text-sweet-pink-400 shadow-md backdrop-blur-sm transition-all hover:bg-sweet-pink-400 hover:text-white"
-											onclick={(e) => {
-												e.stopPropagation();
-												toggleDropdown(course.id);
-											}}
-										>
-											<DotsVerticalIcon class="h-5 w-5" />
-										</button>
-										<DropdownMenu
-											isOpen={openDropdownId === course.id}
-											options={getCourseOptions(course)}
-											width={190}
-											class="absolute top-12 right-0 z-50 rounded-2xl border-none p-2 shadow-sweet"
-										/>
-									</div>
-								{/if}
-							{/snippet}
-						</CourseCard>
-					{/each}
-				</div>
-
-				<!-- ─── Enhanced Pagination ─── -->
-				{#if totalPages > 1}
-					<div class="mt-16 flex items-center justify-center gap-2">
-						<button
-							onclick={() => handlePageChange(Math.max(1, currentPage - 1))}
-							disabled={currentPage === 1}
-							class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white font-black text-sweet-brown shadow-sm transition-all hover:bg-sweet-pink-50 disabled:opacity-30"
-						>
-							<ChevronLeftIcon class="h-5 w-5" />
-						</button>
-
-						<div class="flex items-center gap-2 rounded-2xl bg-white p-1.5 shadow-sm">
-							{#each Array.from({ length: totalPages }, (_, i) => i + 1) as page, index (index)}
-								{#if Math.abs(page - currentPage) < 3 || page === 1 || page === totalPages}
-									<button
-										onclick={() => handlePageChange(page)}
-										class={cn(
-											'flex h-9 w-9 items-center justify-center rounded-xl text-sm font-black transition-all duration-300',
-											currentPage === page
-												? 'sweet-gradient-intense text-white shadow-md'
-												: 'text-sweet-brown/40 hover:bg-sweet-pink-50'
-										)}
-									>
-										{page}
-									</button>
-								{:else if Math.abs(page - currentPage) === 3}
-									<span class="px-2 text-sweet-brown/20">...</span>
-								{/if}
-							{/each}
-						</div>
-
-						<button
-							onclick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-							disabled={currentPage === totalPages}
-							class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white font-black text-sweet-brown shadow-sm transition-all hover:bg-sweet-pink-50 disabled:opacity-30"
-						>
-							<ChevronsRightIcon class="h-5 w-5" />
-						</button>
-					</div>
-				{/if}
-			{:else}
-				<!-- Empty State -->
-				<div class="flex flex-col items-center justify-center py-32 text-center">
-					<div
-						class="mb-6 flex h-24 w-24 items-center justify-center rounded-[32px] bg-white shadow-sweet"
+			<!-- ─── Enhanced Pagination ─── -->
+			{#if totalPages > 1}
+				<div class="mt-16 flex items-center justify-center gap-2">
+					<button
+						onclick={() => handlePageChange(Math.max(1, currentPage - 1))}
+						disabled={currentPage === 1}
+						class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white font-black text-sweet-brown shadow-sm transition-all hover:bg-sweet-pink-50 disabled:opacity-30"
 					>
-						<CakeIcon class="h-12 w-12 text-sweet-pink-100" />
+						<ChevronLeftIcon class="h-5 w-5" />
+					</button>
+
+					<div class="flex items-center gap-2 rounded-2xl bg-white p-1.5 shadow-sm">
+						{#each Array.from({ length: totalPages }, (_, i) => i + 1) as page, index (index)}
+							{#if Math.abs(page - currentPage) < 3 || page === 1 || page === totalPages}
+								<button
+									onclick={() => handlePageChange(page)}
+									class={cn(
+										'flex h-9 w-9 items-center justify-center rounded-xl text-sm font-black transition-all duration-300',
+										currentPage === page
+											? 'sweet-gradient-intense text-white shadow-md'
+											: 'text-sweet-brown/40 hover:bg-sweet-pink-50'
+									)}
+								>
+									{page}
+								</button>
+							{:else if Math.abs(page - currentPage) === 3}
+								<span class="px-2 text-sweet-brown/20">...</span>
+							{/if}
+						{/each}
 					</div>
-					<h3 class="text-2xl font-black text-sweet-brown">No se encontraron cursos</h3>
-					<p class="mt-2 text-sm font-bold text-sweet-brown/40">
-						Intenta ajustar los filtros de búsqueda o categoría
-					</p>
-					<Button
-						variant="outline"
-						class="mt-8 h-12 rounded-2xl border-2 border-sweet-pink-100 px-8 font-black text-sweet-pink-400 hover:bg-sweet-pink-50"
-						onclick={() => {
-							searchQuery = '';
-							selectedCategory = '';
-							selectedDifficulty = '';
-							selectedStatus = '';
-							loadCourses();
-						}}
+
+					<button
+						onclick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+						disabled={currentPage === totalPages}
+						class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white font-black text-sweet-brown shadow-sm transition-all hover:bg-sweet-pink-50 disabled:opacity-30"
 					>
-						Reestablecer búsqueda
-					</Button>
+						<ChevronsRightIcon class="h-5 w-5" />
+					</button>
 				</div>
 			{/if}
-		</div>
+		{:else}
+			<!-- Empty State -->
+			<div class="flex flex-col items-center justify-center py-32 text-center">
+				<div
+					class="mb-6 flex h-24 w-24 items-center justify-center rounded-[32px] bg-white shadow-sweet"
+				>
+					<CakeIcon class="h-12 w-12 text-sweet-pink-100" />
+				</div>
+				<h3 class="text-2xl font-black text-sweet-brown">No se encontraron cursos</h3>
+				<p class="mt-2 text-sm font-bold text-sweet-brown/40">
+					Intenta ajustar los filtros de búsqueda o categoría
+				</p>
+				<Button
+					variant="outline"
+					class="mt-8 h-12 rounded-2xl border-2 border-sweet-pink-100 px-8 font-black text-sweet-pink-400 hover:bg-sweet-pink-50"
+					onclick={() => {
+						searchQuery = '';
+						selectedCategory = '';
+						selectedDifficulty = '';
+						selectedStatus = '';
+						loadCourses();
+					}}
+				>
+					Reestablecer búsqueda
+				</Button>
+			</div>
+		{/if}
 	</div>
 
 	<!-- Modals -->
@@ -459,6 +482,34 @@
 			selectedCourse = null;
 		}}
 		onSubmit={handleCourseSubmit}
+	/>
+
+	<CourseCoverModal
+		isOpen={isCoverModalOpen}
+		course={selectedCourse}
+		onClose={() => {
+			isCoverModalOpen = false;
+			selectedCourse = null;
+		}}
+		onSuccess={(updatedCourse) => {
+			courses = courses.map((c) => (c.id === updatedCourse.id ? updatedCourse : c));
+			isCoverModalOpen = false;
+			selectedCourse = null;
+		}}
+	/>
+
+	<CourseStatusModal
+		isOpen={isStatusModalOpen}
+		course={selectedCourse}
+		onClose={() => {
+			isStatusModalOpen = false;
+			selectedCourse = null;
+		}}
+		onSuccess={(updatedCourse) => {
+			courses = courses.map((c) => (c.id === updatedCourse.id ? updatedCourse : c));
+			isStatusModalOpen = false;
+			selectedCourse = null;
+		}}
 	/>
 
 	{#if selectedCourse}

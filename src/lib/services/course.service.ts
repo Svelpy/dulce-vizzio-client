@@ -40,6 +40,18 @@ class CourseService {
 		return apiDulceVizzio.delete<string>(`${BASE_PATH}/${courseId}`);
 	}
 
+	deleteLesson(lessonId: string): Promise<string> {
+		return apiDulceVizzio.delete<string>(`/lessons/${lessonId}`);
+	}
+
+	reorderLesson(lessonId: string, order: number): Promise<Lesson[]> {
+		return apiDulceVizzio.patch<Lesson[]>(`/lessons/${lessonId}/order`, { order });
+	}
+
+	deleteAllMaterials(lessonId: string): Promise<string> {
+		return apiDulceVizzio.delete<string>(`/lessons/${lessonId}/materials`);
+	}
+
 	createLesson(courseId: string, data: CreateLessonRequest): Promise<Lesson> {
 		return apiDulceVizzio.post<Lesson>(`${BASE_PATH}/${courseId}/lessons`, data);
 	}
@@ -62,6 +74,20 @@ class CourseService {
 
 	uploadMaterial(lessonId: string, data: FormData): Promise<CourseMaterial> {
 		return apiDulceVizzio.post<CourseMaterial>(`/lessons/${lessonId}/materials`, data);
+	}
+
+	uploadCover(courseId: string, file: File): Promise<Course> {
+		const formData = new FormData();
+		formData.append('file', file);
+		return apiDulceVizzio.patch<Course>(`${BASE_PATH}/${courseId}/cover`, formData);
+	}
+
+	updateStatus(courseId: string, status: string): Promise<Course> {
+		return apiDulceVizzio.patch<Course>(`${BASE_PATH}/${courseId}/status`, { status });
+	}
+
+	deleteMaterial(lessonId: string, materialOrder: number): Promise<string> {
+		return apiDulceVizzio.delete<string>(`/lessons/${lessonId}/materials/${materialOrder}`);
 	}
 }
 

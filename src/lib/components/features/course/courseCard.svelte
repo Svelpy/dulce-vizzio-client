@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui';
 	import { ClockIcon, ChefHatIcon, CakeIcon } from '$lib/icons/outline';
-	import type { Course } from '$lib/interfaces';
+	import type { Course, CourseStatus } from '$lib/interfaces';
 	import { formatDuration } from '$lib/utils';
 	import { cn } from '$lib/utils';
 
@@ -13,6 +13,7 @@
 		priceVisible?: boolean;
 		difficultyVisible?: boolean;
 		contentVisible?: boolean;
+		statusVisible?: boolean;
 		actions?: import('svelte').Snippet;
 	}
 
@@ -24,8 +25,21 @@
 		priceVisible = true,
 		difficultyVisible = true,
 		contentVisible = true,
+		statusVisible = false,
 		actions
 	}: Props = $props();
+
+	const statusMap: Record<CourseStatus, { label: string; class: string; dot: string }> = {
+		DRAFT: { label: 'Borrador', class: 'text-slate-400', dot: 'bg-slate-300' },
+		REVIEW: { label: 'En Revisión', class: 'text-indigo-400', dot: 'bg-indigo-400' },
+		PUBLISHED: { label: 'Publicado', class: 'text-sweet-pink-400', dot: 'bg-sweet-pink-400' },
+		ARCHIVED: {
+			label: 'Archivado',
+			class: 'text-amber-500',
+			dot: 'bg-amber-500'
+		},
+		RETIRED: { label: 'Retirado', class: 'text-rose-500', dot: 'bg-rose-500' }
+	};
 
 	const handleCtaClick = (e: MouseEvent) => {
 		e.stopPropagation();
@@ -81,27 +95,9 @@
 				</div>
 			{/if}
 		</div>
-
-		<!-- Overlays -->
-		<div class="absolute top-5 left-5 flex flex-wrap gap-2">
-			<span
-				class="rounded-full bg-white/90 px-3 py-1 text-[10px] font-black tracking-widest text-sweet-brown uppercase backdrop-blur-sm"
-			>
-				{course.category}
-			</span>
-			<!-- {#if difficultyVisible}
-				<span
-					class="rounded-full bg-sweet-pink-400/90 px-3 py-1 text-[10px] font-black tracking-widest text-white uppercase backdrop-blur-sm"
-				>
-					{difficultyLabels[course.difficulty] || 'Intermedio'}
-				</span>
-			{/if} -->
-		</div>
 	</div>
 
 	{#if actions}
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<div
 			class="absolute top-5 right-5 z-20 transition-transform hover:scale-110"
 			onclick={(e) => e.stopPropagation()}
@@ -124,16 +120,36 @@
 
 				<!-- Meta Row -->
 				<div class="mb-6 flex items-center justify-between border-t border-sweet-pink-50 pt-4">
-					<div class="flex items-center gap-3 text-[11px] font-black text-sweet-brown/60">
-						<div class="flex items-center gap-1.5">
-							<ClockIcon class="h-4 w-4 text-sweet-pink-400" />
-							<span>{course.lessons_count} Lección</span>
+					<div class="flex flex-col gap-2">
+						<div class="flex items-center gap-3 text-[11px] font-black text-sweet-brown/60">
+							<div class="flex items-center gap-1.5">
+								<ClockIcon class="h-4 w-4 text-sweet-pink-400" />
+								<span>{course.lessons_count} Lección</span>
+							</div>
+							{#if difficultyVisible}
+								<div class="ml-1 flex items-center gap-0.5 text-sweet-pink-400">
+									{#each Array.from({ length: getDifficultyLevel() }, (_, i) => i) as i (i)}
+										<ChefHatIcon class="size-3.5 fill-current" />
+									{/each}
+								</div>
+							{/if}
 						</div>
-						{#if difficultyVisible}
-							<div class="ml-1 flex items-center gap-0.5 text-sweet-pink-400">
-								{#each Array.from({ length: getDifficultyLevel() }, (_, i) => i) as i (i)}
-									<ChefHatIcon class="size-3.5 fill-current" />
-								{/each}
+						{#if statusVisible}
+							<div class="flex items-center gap-1.5">
+								<div
+									class={cn(
+										'h-1.5 w-1.5 rounded-full',
+										statusMap[course.status]?.dot || 'bg-gray-400'
+									)}
+								></div>
+								<span
+									class={cn(
+										'text-[9px] font-black tracking-widest uppercase',
+										statusMap[course.status]?.class || 'text-gray-500'
+									)}
+								>
+									{statusMap[course.status]?.label || course.status}
+								</span>
 							</div>
 						{/if}
 					</div>

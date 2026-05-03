@@ -19,6 +19,7 @@
 		onDelete: (user: User) => void;
 		onResetPassword: (user: User) => void;
 		onUpdateRole: (user: User) => void;
+		onToggleActive: (user: User) => void;
 	}
 
 	let {
@@ -27,7 +28,8 @@
 		onAction,
 		onDelete,
 		onResetPassword,
-		onUpdateRole
+		onUpdateRole,
+		onToggleActive
 	}: Props = $props();
 </script>
 
@@ -60,7 +62,7 @@
 		</div>
 	{:else}
 		{#each users as user (user.id)}
-			<CardUser {user} {onAction} {onDelete} {onResetPassword} {onUpdateRole} />
+			<CardUser {user} {onAction} {onDelete} {onResetPassword} {onUpdateRole} {onToggleActive} />
 		{/each}
 	{/if}
 </div>
@@ -119,7 +121,7 @@
 				</TableRow>
 			{:else}
 				{#each users as user (user.id)}
-					<RowUser {user} {onAction} {onDelete} {onResetPassword} {onUpdateRole} />
+					<RowUser {user} {onAction} {onDelete} {onResetPassword} {onUpdateRole} {onToggleActive} />
 				{/each}
 			{/if}
 		</TableBody>

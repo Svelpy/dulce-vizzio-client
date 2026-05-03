@@ -30,6 +30,9 @@
 	let deleteLoading: boolean = $state(false);
 	let showResetPasswordModal: boolean = $state(false);
 	let showChangeRoleModal: boolean = $state(false);
+	let showToggleActiveConfirm: boolean = $state(false);
+	let userToToggle: User | null = $state(null);
+	let toggleActiveLoading: boolean = $state(false);
 
 	onMount(() => {
 		loadUsers();
@@ -114,6 +117,28 @@
 	function handleUpdateRole(user: User) {
 		selectedUser = user;
 		showChangeRoleModal = true;
+	}
+
+	function handleToggleActive(user: User) {
+		userToToggle = user;
+		showToggleActiveConfirm = true;
+	}
+
+	async function handleConfirmToggleActive() {
+		if (!userToToggle) return;
+		toggleActiveLoading = true;
+		try {
+			const updated = await userService.toggleActive(userToToggle.id);
+			alert('success', `Usuario ${updated.is_active ? 'activado' : 'desactivado'} con éxito`);
+			loadUsers();
+			showToggleActiveConfirm = false;
+			userToToggle = null;
+		} catch (err: unknown) {
+			alert('error', 'Error al cambiar el estado del usuario');
+			console.error('Error toggling user status:', err);
+		} finally {
+			toggleActiveLoading = false;
+		}
 	}
 
 	// function handleResetFilters() {
@@ -201,6 +226,7 @@
 			onDelete={handleDeleteUser}
 			onResetPassword={handleResetPassword}
 			onUpdateRole={handleUpdateRole}
+			onToggleActive={handleToggleActive}
 		/>
 
 		<!-- Bottom: summary + pagination -->
@@ -249,4 +275,15 @@
 		alert('success', 'Rol actualizado con éxito');
 		loadUsers();
 	}}
+/>
+
+<ModalConfirm
+	isOpen={showToggleActiveConfirm}
+	message={`¿Estás seguro de que deseas ${userToToggle?.is_active ? 'desactivar' : 'activar'} al usuario ${userToToggle?.full_name}?`}
+	onConfirm={handleConfirmToggleActive}
+	onCancel={() => {
+		showToggleActiveConfirm = false;
+		userToToggle = null;
+	}}
+	loading={toggleActiveLoading}
 />

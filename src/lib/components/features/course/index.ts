@@ -4,4 +4,7 @@ export { default as LessonItem } from './lessonItem.svelte';
 export { default as VideoPlayer } from './videoPlayer.svelte';
 export { default as CourseModal } from './CourseModal.svelte';
 export { default as CreateLessonModal } from './CreateLessonModal.svelte';
+export { default as LessonModal } from './LessonModal.svelte';
 export { default as MaterialUploadModal } from './MaterialUploadModal.svelte';
+export { default as CourseCoverModal } from './CourseCoverModal.svelte';
+export { default as CourseStatusModal } from './CourseStatusModal.svelte';

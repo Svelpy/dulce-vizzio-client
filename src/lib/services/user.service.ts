@@ -65,13 +65,17 @@ class UserService {
 		});
 	}
 
-	/**
-	 * Actualiza el avatar del usuario autenticado (multipart/form-data)
-	 */
 	updateAvatar(file: File): Promise<User> {
 		const formData = new FormData();
 		formData.append('file', file);
 		return apiDulceVizzio.patch<User>('/auth/me/avatar', formData);
+	}
+
+	/**
+	 * Activa o desactiva un usuario
+	 */
+	toggleActive(id: string): Promise<User> {
+		return apiDulceVizzio.patch<User>(`/users/${id}/toggle-active`, {});
 	}
 }
 

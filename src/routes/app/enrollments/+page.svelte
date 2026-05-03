@@ -6,13 +6,34 @@
 	import EnrollmentsTable from '$lib/components/features/enrollments/EnrollmentsTable.svelte';
 	import EnrollmentFilters from '$lib/components/features/enrollments/EnrollmentFilters.svelte';
 	import CreateEnrollmentModal from '$lib/components/features/enrollments/CreateEnrollmentModal.svelte';
-	import { Pagination, Button } from '$lib/components/ui';
+	import { Pagination, Button, DropdownMenu, Heading } from '$lib/components/ui';
+	import { courseService } from '$lib/services';
+	import type { Course, DropdownOption } from '$lib/interfaces';
+	import ExtendEnrollmentModal from '$lib/components/features/enrollments/ExtendEnrollmentModal.svelte';
+	import { PlusIcon, DotsVerticalIcon, RefreshIcon, TrashIcon } from '$lib/icons/outline';
+	import { ModalConfirm } from '$lib/components/ui';
+	import { alert } from '$lib/utils';
+	import { AlertTriangleIcon, ExclamationCircleIcon } from '$lib/icons/solid';
 
 	// State
 	let enrollmentsData: EnrollmentListResponse | null = $state(null);
 	let loading = $state(true);
 	let error = $state<string | null>(null);
 	let isModalOpen = $state(false);
+	let selectedCourseForEnrollment = $state<Course | null>(null);
+
+	// Courses for quick enrollment
+	let coursesData = $state<Course[]>([]);
+	let loadingCourses = $state(true);
+	let openDropdownId = $state<string | null>(null);
+
+	// Extension Modal
+	let isExtendModalOpen = $state(false);
+	let selectedEnrollment = $state<Enrollment | null>(null);
+
+	// Delete Modal
+	let isDeleteModalOpen = $state(false);
+	let isDeleting = $state(false);
 
 	// Filters
 	let searchQuery = $state('');
@@ -22,7 +43,20 @@
 
 	onMount(() => {
 		loadEnrollments();
+		loadCourses();
 	});
+
+	async function loadCourses() {
+		loadingCourses = true;
+		try {
+			const resp = await courseService.getAll({ limit: 10, status: 'PUBLISHED' });
+			coursesData = resp.data;
+		} catch (err) {
+			console.error('Error loading courses for quick enrollment:', err);
+		} finally {
+			loadingCourses = false;
+		}
+	}
 
 	async function loadEnrollments() {
 		loading = true;
@@ -78,34 +112,115 @@
 		currentPage = 1;
 		loadEnrollments();
 	}
+
+	function toggleDropdown(id: string) {
+		openDropdownId = openDropdownId === id ? null : id;
+	}
+
+	function openEnrollmentModal(course?: Course) {
+		selectedCourseForEnrollment = course || null;
+		isModalOpen = true;
+	}
+
+	function getCourseOptions(course: Course): DropdownOption[] {
+		return [
+			{
+				id: 'enroll',
+				label: 'Inscribir Alumno',
+				icon: PlusIcon,
+				action: () => openEnrollmentModal(course)
+			}
+		];
+	}
+
+	function openExtendModal(enrollment: Enrollment) {
+		selectedEnrollment = enrollment;
+		isExtendModalOpen = true;
+	}
+
+	function getEnrollmentOptions(enrollment: Enrollment): DropdownOption[] {
+		return [
+			{
+				id: 'extend',
+				label: 'Extender Inscripción',
+				icon: RefreshIcon,
+				action: () => openExtendModal(enrollment)
+			},
+			{
+				id: 'delete',
+				label: 'Eliminar Inscripción',
+				icon: TrashIcon,
+				action: () => openDeleteModal(enrollment),
+				divider: true,
+				variant: 'destructive'
+			}
+		];
+	}
+
+	function openDeleteModal(enrollment: Enrollment) {
+		selectedEnrollment = enrollment;
+		isDeleteModalOpen = true;
+	}
+
+	async function handleDeleteConfirm() {
+		if (!selectedEnrollment) return;
+		isDeleting = true;
+		try {
+			await enrollmentService.cancel(selectedEnrollment.id);
+			alert('success', 'Inscripción eliminada exitosamente');
+			if (enrollmentsData) {
+				enrollmentsData.data = enrollmentsData.data.filter((e) => e.id !== selectedEnrollment!.id);
+			}
+			isDeleteModalOpen = false;
+		} catch (err) {
+			console.error('Error deleting enrollment:', err);
+			alert('error', 'Ocurrió un error al eliminar la inscripción');
+		} finally {
+			isDeleting = false;
+			selectedEnrollment = null;
+		}
+	}
+
+	function handleEnrollmentUpdate(updated: Enrollment) {
+		if (!enrollmentsData) return;
+		enrollmentsData.data = enrollmentsData.data.map((e) => (e.id === updated.id ? updated : e));
+	}
 </script>
 
+{#snippet enrollmentActions(enrollment: Enrollment)}
+	<div class="relative">
+		<button
+			class="flex h-9 w-9 items-center justify-center rounded-2xl bg-white text-stone-400 shadow-sm ring-1 ring-stone-200 transition-all hover:bg-stone-50 hover:text-stone-800"
+			onclick={(e) => {
+				e.stopPropagation();
+				toggleDropdown(enrollment.id);
+			}}
+		>
+			<DotsVerticalIcon class="h-5 w-5" />
+		</button>
+		<DropdownMenu
+			isOpen={openDropdownId === enrollment.id}
+			options={getEnrollmentOptions(enrollment)}
+			width={190}
+			class="absolute top-11 right-0 z-50 rounded-2xl border-none p-2 shadow-sweet"
+		/>
+	</div>
+{/snippet}
+
 <svelte:head>
-	<title>Inscripciones | Dulce Vizzio</title>
+	<title>Inscripciones</title>
 </svelte:head>
 
 <div class="flex flex-col gap-6 p-4 md:p-8">
 	<!-- Header -->
 	<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 		<div>
-			<h1 class="text-2xl font-bold tracking-tight text-stone-800 md:text-3xl">
-				Gestión de Inscripciones
-			</h1>
-			<p class="mt-1 text-sm text-stone-500">
-				Administra las inscripciones de tus estudiantes a los cursos.
-			</p>
+			<Heading level="h3">Gestión de Inscripciones</Heading>
 		</div>
 		<div class="flex items-center gap-3">
 			<Button
-				variant="outline"
-				class="border-stone-200 text-stone-600 hover:bg-stone-50"
-				onclick={handleResetFilters}
-			>
-				Reiniciar filtros
-			</Button>
-			<Button
 				class="bg-stone-900 text-white shadow-lg transition-all hover:bg-rose-600 hover:shadow-rose-600/20"
-				onclick={() => (isModalOpen = true)}
+				onclick={() => openEnrollmentModal()}
 			>
 				Nueva Inscripción
 			</Button>
@@ -120,41 +235,6 @@
 		onStatusChange={handleStatusChange}
 	/>
 
-	<!-- Pagination Controls (Top) -->
-	{#if enrollmentsData && !loading}
-		<div
-			class="flex flex-col gap-4 rounded-xl border border-stone-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
-		>
-			<div class="flex items-center gap-4 text-sm text-stone-600">
-				<div class="flex items-center gap-2">
-					<span>Mostrando:</span>
-					<select
-						bind:value={perPage}
-						onchange={handlePerPageChange}
-						class="rounded-md border border-stone-200 bg-stone-50 px-2 py-1 transition-all outline-none focus:border-stone-400"
-					>
-						<option value={10}>10</option>
-						<option value={20}>20</option>
-						<option value={50}>50</option>
-					</select>
-				</div>
-				<span class="hidden sm:inline">|</span>
-				<span>Total: <span class="font-semibold">{enrollmentsData.total}</span> inscripciones</span>
-			</div>
-
-			<div class="flex items-center gap-2">
-				<Button
-					variant="outline"
-					size="sm"
-					class="border-none bg-rose-500 text-white shadow-sm hover:bg-rose-600"
-					onclick={loadEnrollments}
-				>
-					Actualizar lista
-				</Button>
-			</div>
-		</div>
-	{/if}
-
 	<!-- State Management -->
 	{#if loading}
 		<div class="flex min-h-[400px] flex-col items-center justify-center gap-4 py-20">
@@ -165,16 +245,9 @@
 		</div>
 	{:else if error}
 		<div
-			class="flex min-h-[400px] flex-col items-center justify-center gap-4 rounded-2xl bg-rose-50 p-8 text-center text-rose-800"
+			class="flex min-h-[400px] flex-col items-center justify-center gap-4 rounded-2xl bg-rose-50 p-8 text-center text-light-error"
 		>
-			<svg class="h-12 w-12 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-				/>
-			</svg>
+			<ExclamationCircleIcon class="h-12 w-12 " />
 			<div class="max-w-md">
 				<h3 class="text-lg font-bold">Ocurrió un error</h3>
 				<p class="mt-1 text-sm opacity-90">{error}</p>
@@ -195,23 +268,13 @@
 				<div
 					class="flex h-16 w-16 items-center justify-center rounded-full bg-stone-50 text-stone-300"
 				>
-					<svg class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="1.5"
-							d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-						/>
-					</svg>
+					<AlertTriangleIcon class="h-12 w-12 " />
 				</div>
 				<div>
 					<h3 class="text-lg font-semibold text-stone-800">No se encontraron inscripciones</h3>
 					<p class="mt-1 text-sm text-stone-500">
 						Intenta ajustar los filtros de búsqueda para obtener resultados.
 					</p>
-					<Button variant="outline" class="mt-6 border-stone-200" onclick={handleResetFilters}>
-						Limpiar filtros
-					</Button>
 				</div>
 			</div>
 		{:else}
@@ -219,13 +282,21 @@
 			<div class="block lg:hidden">
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 					{#each enrollmentsData.data as enrollment (enrollment.id)}
-						<EnrollmentCard {enrollment} onAction={handleEnrollmentAction} />
+						<EnrollmentCard {enrollment}>
+							{#snippet actions()}
+								{@render enrollmentActions(enrollment)}
+							{/snippet}
+						</EnrollmentCard>
 					{/each}
 				</div>
 			</div>
 
 			<div class="hidden lg:block">
-				<EnrollmentsTable enrollments={enrollmentsData.data} onAction={handleEnrollmentAction} />
+				<EnrollmentsTable enrollments={enrollmentsData.data}>
+					{#snippet actions(enrollment)}
+						{@render enrollmentActions(enrollment)}
+					{/snippet}
+				</EnrollmentsTable>
 			</div>
 
 			<!-- Pagination (Bottom) -->
@@ -253,7 +324,32 @@
 
 	<CreateEnrollmentModal
 		isOpen={isModalOpen}
-		onClose={() => (isModalOpen = false)}
+		initialCourse={selectedCourseForEnrollment}
+		onClose={() => {
+			isModalOpen = false;
+			selectedCourseForEnrollment = null;
+		}}
 		onSuccess={() => loadEnrollments()}
+	/>
+
+	<ExtendEnrollmentModal
+		isOpen={isExtendModalOpen}
+		enrollment={selectedEnrollment}
+		onClose={() => {
+			isExtendModalOpen = false;
+			selectedEnrollment = null;
+		}}
+		onSuccess={handleEnrollmentUpdate}
+	/>
+
+	<ModalConfirm
+		isOpen={isDeleteModalOpen}
+		message={`¿Estás seguro que deseas eliminar la inscripción de ${selectedEnrollment?.user?.full_name} en el curso ${selectedEnrollment?.course?.title}? Esta acción no se puede deshacer.`}
+		onConfirm={handleDeleteConfirm}
+		onCancel={() => {
+			isDeleteModalOpen = false;
+			selectedEnrollment = null;
+		}}
+		loading={isDeleting}
 	/>
 </div>
