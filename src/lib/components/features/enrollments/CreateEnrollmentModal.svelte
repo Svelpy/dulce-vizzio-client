@@ -18,7 +18,7 @@
 
 	// Form State
 	let selectedUser = $state<User | null>(null);
-	let selectedCourse = $state<Course | null>(initialCourse);
+	let selectedCourse = $state<Course | null>(null);
 	let notes = $state('');
 	let isSubmitting = $state(false);
 
@@ -145,6 +145,8 @@
 				class="relative w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl"
 				transition:scale={{ duration: 300, start: 0.95, opacity: 0 }}
 				onclick={(e) => e.stopPropagation()}
+				onkeydown={(e) => e.stopPropagation()}
+				role="presentation"
 			>
 				<!-- Header -->
 				<div class="bg-stone-900 px-6 py-5 text-white">
@@ -158,6 +160,7 @@
 						<button
 							class="rounded-full p-2 transition-colors hover:bg-white/10"
 							onclick={handleClose}
+							aria-label="Cerrar"
 						>
 							<XIcon class="size-6" />
 						</button>
@@ -168,7 +171,8 @@
 				<div class="custom-scrollbar max-h-[70vh] space-y-6 overflow-y-auto p-8">
 					<!-- User Selector -->
 					<div class="relative">
-						<label class="mb-2 block text-sm font-bold text-stone-700">Seleccionar Estudiante</label
+						<label for="user-search" class="mb-2 block text-sm font-bold text-stone-700"
+							>Seleccionar Estudiante</label
 						>
 						<div class="relative">
 							<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -176,6 +180,7 @@
 							</div>
 							<input
 								type="text"
+								id="user-search"
 								class="block w-full rounded-xl border border-stone-200 bg-stone-50 py-3 pr-3 pl-10 text-stone-800 placeholder-stone-400 transition-all focus:border-stone-900 focus:ring-2 focus:ring-stone-900 sm:text-sm"
 								placeholder="Buscar por nombre o email..."
 								bind:value={userSearch}
@@ -259,7 +264,9 @@
 					<!-- Course Selector -->
 					{#if !initialCourse}
 						<div class="relative">
-							<label class="mb-2 block text-sm font-bold text-stone-700">Seleccionar Curso</label>
+							<label for="course-search" class="mb-2 block text-sm font-bold text-stone-700"
+								>Seleccionar Curso</label
+							>
 
 							<div class="relative mb-4">
 								<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">

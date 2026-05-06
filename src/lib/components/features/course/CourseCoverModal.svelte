@@ -89,6 +89,8 @@
 				class="relative w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl"
 				transition:scale={{ duration: 300, start: 0.95, opacity: 0 }}
 				onclick={(e) => e.stopPropagation()}
+				onkeydown={(e) => e.stopPropagation()}
+				role="presentation"
 			>
 				<!-- Header -->
 				<div class="bg-stone-900 px-6 py-5 text-white">
@@ -99,7 +101,11 @@
 								{course?.title}
 							</p>
 						</div>
-						<button class="rounded-full p-2 transition-colors hover:bg-white/10" onclick={onClose}>
+						<button
+							class="rounded-full p-2 transition-colors hover:bg-white/10"
+							onclick={onClose}
+							aria-label="Cerrar"
+						>
 							<XIcon class="size-6" />
 						</button>
 					</div>
@@ -111,10 +117,12 @@
 						Selecciona una imagen atractiva que represente el contenido del curso.
 					</p>
 
-					<!-- svelte-ignore a11y_no_static_element_interactions -->
 					<div
 						class="group relative flex h-64 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-stone-200 bg-stone-50 transition-all hover:border-rose-300 hover:bg-rose-50"
+						role="button"
+						tabindex="0"
 						onclick={() => fileInput?.click()}
+						onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && fileInput?.click()}
 						ondrop={handleDrop}
 						ondragover={handleDragOver}
 					>

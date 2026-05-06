@@ -116,6 +116,8 @@
 				class="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl"
 				transition:scale={{ duration: 300, start: 0.95, opacity: 0 }}
 				onclick={(e) => e.stopPropagation()}
+				onkeydown={(e) => e.stopPropagation()}
+				role="presentation"
 			>
 				<!-- Header -->
 				<div class="bg-stone-900 px-8 py-7 text-white">
@@ -129,6 +131,7 @@
 						<button
 							class="rounded-full p-2 transition-all hover:bg-white/10 active:scale-90"
 							onclick={handleClose}
+							aria-label="Cerrar"
 						>
 							<XIcon class="size-6" />
 						</button>

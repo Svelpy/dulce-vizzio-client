@@ -116,9 +116,11 @@
 	<div class="fixed inset-0 z-50 flex items-center justify-center p-4">
 		<BlurOverlay class="flex items-center justify-center p-4">
 			<div
-				class="relative w-full max-w-lg overflow-hidden rounded-[2.5rem] bg-white shadow-2xl"
+				class="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl"
 				transition:scale={{ duration: 300, start: 0.95, opacity: 0 }}
 				onclick={(e) => e.stopPropagation()}
+				onkeydown={(e) => e.stopPropagation()}
+				role="presentation"
 			>
 				<!-- Header -->
 				<div class="bg-stone-900 px-8 py-7 text-white">
@@ -132,6 +134,7 @@
 						<button
 							class="rounded-full p-2 transition-all hover:bg-white/10 active:scale-90"
 							onclick={onClose}
+							aria-label="Cerrar"
 						>
 							<XIcon class="size-6" />
 						</button>

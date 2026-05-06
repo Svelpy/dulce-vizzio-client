@@ -89,11 +89,13 @@
 	const isDisabled = $derived(disabled || loading);
 	const isIconOnly = $derived(!children && (!!leftIcon || !!rightIcon));
 
-	if (isIconOnly && !restProps['aria-label']) {
-		console.warn(
-			`Accesibility Warning: An icon-only button should have an 'aria-label' prop to be accessible to screen readers.`
-		);
-	}
+	$effect(() => {
+		if (isIconOnly && !restProps['aria-label']) {
+			console.warn(
+				`Accesibility Warning: An icon-only button should have an 'aria-label' prop to be accessible to screen readers.`
+			);
+		}
+	});
 
 	const buttonClasses = $derived(
 		[

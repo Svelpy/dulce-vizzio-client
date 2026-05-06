@@ -10,6 +10,7 @@
 	import { YoutubeIcon } from '$lib/icons/solid';
 	import { redirect } from '$lib/utils';
 	import { APP_SITE_CONFIG } from '$lib/constants';
+	import { resolve } from '$app/paths';
 
 	let featuredCourses: Course[] = $state([]);
 	let loading = $state(true);
@@ -92,9 +93,9 @@
 		redirect(`/app/courses/${slug}`);
 	};
 
-	const handleCategoryClick = (category: string) => {
-		redirect(`/app/courses?category=${encodeURIComponent(category)}`);
-	};
+	// const handleCategoryClick = (category: string) => {
+	// 	redirect(`/app/courses?category=${encodeURIComponent(category)}`);
+	// };
 </script>
 
 <MainLayout title={APP_SITE_CONFIG.APP_NAME} description={APP_SITE_CONFIG.APP_DESCRIPTION}>
@@ -289,15 +290,15 @@
 				<div>
 					<h4 class="mb-4 font-bold">Cursos</h4>
 					<ul class="space-y-2">
-						<li><a href="/app/courses" class="transition-colors hover:text-white">Explorar</a></li>
+						<li><a href={resolve('/app/courses')} class="transition-colors hover:text-white">Explorar</a></li>
 						<li>
-							<a href="/app/courses?difficulty=BEGINNER" class="transition-colors">Principiante</a>
+							<a href={resolve('/app/courses') + '?difficulty=BEGINNER'} class="transition-colors">Principiante</a>
 						</li>
 						<li>
-							<a href="/app/courses?difficulty=BEGINNER" class="transition-colors">Intermedio</a>
+							<a href={resolve('/app/courses') + '?difficulty=BEGINNER'} class="transition-colors">Intermedio</a>
 						</li>
 						<li>
-							<a href="/app/courses?difficulty=ADVANCED" class="transition-colors">Avanzado</a>
+							<a href={resolve('/app/courses') + '?difficulty=ADVANCED'} class="transition-colors">Avanzado</a>
 						</li>
 					</ul>
 				</div>
@@ -320,7 +321,7 @@
 								>Pagina Web</a
 							>
 						</li>
-						<li><a href="#" class="transition-colors">FAQ</a></li>
+						<li><a href={resolve('/app/courses')} class="transition-colors">FAQ</a></li>
 					</ul>
 				</div>
 

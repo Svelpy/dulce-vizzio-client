@@ -101,6 +101,8 @@
 		<div
 			class="absolute top-5 right-5 z-20 transition-transform hover:scale-110"
 			onclick={(e) => e.stopPropagation()}
+			onkeydown={(e) => e.stopPropagation()}
+			role="presentation"
 		>
 			{@render actions()}
 		</div>

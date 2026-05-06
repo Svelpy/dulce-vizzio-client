@@ -17,7 +17,7 @@
 <div class={className}>
 	<label
 		for={restProps.id}
-		class="grid grid-cols-[auto,_1fr] items-center gap-0.5 text-sm leading-6 font-medium text-light-two sm:text-base"
+		class="grid grid-cols-[auto,1fr] items-center gap-0.5 text-sm leading-6 font-medium text-light-two sm:text-base"
 	>
 		<span class="truncate"
 			>{label} <span class="text-red-500">{restProps.required && '*'} </span></span

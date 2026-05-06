@@ -68,11 +68,9 @@
 		<BlurOverlay class="flex min-h-full items-center justify-center p-4 sm:p-0">
 			<div
 				class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg"
-				role="document"
+				role="presentation"
 				onclick={(e) => e.stopPropagation()}
-				onkeydown={(e) => {
-					if (e.key === 'Escape') onClose();
-				}}
+				onkeydown={(e) => e.stopPropagation()}
 			>
 				<!-- Header -->
 				<div
@@ -83,6 +81,7 @@
 						type="button"
 						class="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
 						onclick={onClose}
+						aria-label="Cerrar"
 					>
 						<XIcon class="h-6 w-6" />
 					</button>

@@ -91,14 +91,10 @@
 			<div
 				class="relative w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl"
 				transition:scale={{ duration: 300, start: 0.95, opacity: 0 }}
-				role="button"
-				tabindex="0"
+				role="presentation"
+				tabindex="-1"
 				onclick={(e) => e.stopPropagation()}
-				onkeydown={(e) => {
-					if (e.key === 'Enter' || e.key === ' ') {
-						e.stopPropagation();
-					}
-				}}
+				onkeydown={(e) => e.stopPropagation()}
 			>
 				<!-- Header -->
 				<div class="bg-stone-900 px-6 py-5 text-white">
