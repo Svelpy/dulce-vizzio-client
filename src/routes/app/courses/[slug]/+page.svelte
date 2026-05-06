@@ -548,7 +548,7 @@
 												<HomeIcon class="h-5 w-5" />
 											</div>
 											<div class="text-2xl font-black text-sweet-brown">
-												{course.is_enrolled ? 'Inscrito' : 'Gratis'}
+												{course.is_enrolled ? 'Inscrito' : 'No inscrito'}
 											</div>
 											<div class="text-xs font-bold text-sweet-pink-400/70">Acceso</div>
 										</div>
