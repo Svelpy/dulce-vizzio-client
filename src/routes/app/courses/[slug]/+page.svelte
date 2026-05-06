@@ -228,7 +228,7 @@
 			if (course) {
 				// Map the returned Lesson objects back to CourseLesson if necessary
 				// In this case they are compatible enough for display
-				course.lessons = updatedLessons as any;
+				course.lessons = updatedLessons as unknown as CourseLesson[];
 			}
 			alert('success', 'Orden de lección actualizado');
 		} catch (err) {
@@ -271,7 +271,7 @@
 		<!-- Background Decorations -->
 		<div class="pointer-events-none absolute -top-10 -right-10 overflow-hidden opacity-10">
 			<div class="flex flex-wrap gap-20">
-				{#each { length: 5 } as _, i (i)}
+				{#each { length: 5 }, i (i)}
 					<span class="text-9xl text-sweet-pink-300">💕</span>
 				{/each}
 			</div>
@@ -301,7 +301,7 @@
 			{:else if error}
 				<!-- Error State -->
 				<div
-					class="glass-card flex min-h-[50vh] flex-col items-center justify-center rounded-[2rem] p-12 text-center shadow-sweet"
+					class="glass-card flex min-h-[50vh] flex-col items-center justify-center rounded-2xl p-12 text-center shadow-sweet"
 				>
 					<div class="text-center">
 						<div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
@@ -331,7 +331,7 @@
 				<!-- Main Content -->
 				<div class="space-y-6 lg:space-y-8">
 					<!-- Mobile Course Info Header -->
-					<div class="glass-card rounded-[2rem] p-6 text-center shadow-sweet lg:hidden">
+					<div class="glass-card rounded-2xl p-6 text-center shadow-sweet lg:hidden">
 						<div class="mb-4 flex items-center justify-center gap-2">
 							<span class="text-sm font-medium text-sweet-pink-400">{course.category}</span>
 							<span class="text-sweet-pink-200">•</span>
@@ -370,7 +370,7 @@
 								</div>
 
 								<!-- Video Player -->
-								<div class="overflow-hidden rounded-[2rem] bg-black shadow-sweet">
+								<div class="overflow-hidden rounded-2xl bg-black shadow-sweet">
 									{#if currentLesson}
 										<div class="relative aspect-video w-full">
 											<iframe
@@ -394,7 +394,7 @@
 
 								<!-- Current Lesson Info -->
 								{#if currentLesson}
-									<div class="glass-card rounded-[2rem] p-6 shadow-sweet lg:p-8">
+									<div class="glass-card rounded-2xl p-6 shadow-sweet lg:p-8">
 										<h2 class="mb-2 text-2xl font-black text-sweet-brown">{currentLesson.title}</h2>
 										<p class="mb-4 font-medium text-sweet-pink-400/80">{currentLesson.summary}</p>
 
@@ -439,14 +439,26 @@
 													<div class="grid gap-3 sm:grid-cols-2">
 														{#each currentLesson.materials as material, index (index)}
 															{@const config = getMaterialConfig(material.file_format)}
-															<button
+															<div
+																role="button"
+																tabindex="0"
 																onclick={() =>
 																	downloadResource(
 																		material.resource_url,
 																		material.title,
 																		material.file_format
 																	)}
-																class="group flex items-center gap-4 rounded-xl border border-slate-200 p-4 text-left transition-all hover:border-light-four hover:bg-slate-50 hover:shadow-sm"
+																onkeydown={(e) => {
+																	if (e.key === 'Enter' || e.key === ' ') {
+																		e.preventDefault();
+																		downloadResource(
+																			material.resource_url,
+																			material.title,
+																			material.file_format
+																		);
+																	}
+																}}
+																class="group flex cursor-pointer items-center gap-4 rounded-xl border border-slate-200 p-4 text-left transition-all hover:border-light-four hover:bg-slate-50 hover:shadow-sm"
 															>
 																<div
 																	class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg {config.bgColor} {config.color} transition-transform group-hover:scale-110"
@@ -491,7 +503,7 @@
 																		{/if}
 																	</div>
 																</div>
-															</button>
+															</div>
 														{/each}
 													</div>
 												{/if}
@@ -501,7 +513,7 @@
 								{/if}
 
 								<!-- Course Description -->
-								<div class="glass-card rounded-[2rem] p-6 shadow-sweet lg:p-8">
+								<div class="glass-card rounded-2xl p-6 shadow-sweet lg:p-8">
 									<h3 class="mb-3 text-xl font-black text-sweet-brown">Acerca del curso</h3>
 									<p class="mb-4 leading-relaxed text-slate-700">{course.description}</p>
 
@@ -558,7 +570,7 @@
 
 							<!-- Lessons Sidebar (Right - 1/3) -->
 							<div class="lg:col-span-1">
-								<div class="glass-card sticky top-6 overflow-hidden rounded-[2rem] shadow-sweet">
+								<div class="glass-card sticky top-6 overflow-hidden rounded-2xl shadow-sweet">
 									<div class="border-b border-sweet-pink-200/50 p-6 lg:px-8">
 										<div class="mb-2 flex items-center justify-between">
 											<h3 class="flex items-center gap-2 font-black text-sweet-brown">
@@ -590,9 +602,16 @@
 											{@const canAccess = lesson.is_preview || course.is_enrolled}
 											{@const isActive = currentLesson?.id === lesson.id}
 
-											<button
-												onclick={() => selectLesson(lesson)}
-												disabled={!canAccess}
+											<div
+												role="button"
+												tabindex={canAccess ? 0 : -1}
+												onclick={() => canAccess && selectLesson(lesson)}
+												onkeydown={(e) => {
+													if (canAccess && (e.key === 'Enter' || e.key === ' ')) {
+														e.preventDefault();
+														selectLesson(lesson);
+													}
+												}}
 												class="group w-full border-b border-sweet-pink-100/50 p-5 text-left transition-colors last:border-b-0 lg:px-8 {isActive
 													? 'bg-sweet-pink-100/80'
 													: canAccess
@@ -601,7 +620,7 @@
 											>
 												<div class="flex items-start gap-4">
 													<div
-														class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] shadow-sm transition-transform group-hover:scale-105 {isActive ||
+														class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl shadow-sm transition-transform group-hover:scale-105 {isActive ||
 														reorderingLessonId === lesson.id
 															? 'bg-sweet-pink-400 text-white'
 															: canAccess
@@ -707,7 +726,7 @@
 														</div>
 													</div>
 												</div>
-											</button>
+											</div>
 										{/each}
 									</div>
 

@@ -14,6 +14,7 @@
 	import { alert } from '$lib/utils';
 	import { courseService } from '$lib/services';
 	import { cn } from '$lib/utils';
+	import type { Component } from 'svelte';
 
 	interface Props {
 		isOpen: boolean;
@@ -32,7 +33,7 @@
 		{
 			label: string;
 			description: string;
-			icon: any;
+			icon: Component;
 			color: string;
 			bgColor: string;
 			borderColor: string;
@@ -145,7 +146,7 @@
 
 						<button
 							class={cn(
-								'relative flex w-full items-start gap-4 rounded-[1.5rem] border-2 p-5 text-left transition-all duration-200',
+								'relative flex w-full items-start gap-4 rounded-2xl border-2 p-5 text-left transition-all duration-200',
 								isSelected
 									? `${meta.borderColor} ${meta.bgColor} scale-[1.02] ring-4 ring-stone-900/5`
 									: 'border-stone-100 bg-white hover:border-stone-200 hover:bg-stone-50/50'

@@ -113,7 +113,7 @@
 	<div class="fixed inset-0 z-40 flex items-center justify-center p-4">
 		<BlurOverlay class="flex items-center justify-center p-4">
 			<div
-				class="relative w-full max-w-lg overflow-hidden rounded-[2.5rem] bg-white shadow-2xl"
+				class="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl"
 				transition:scale={{ duration: 300, start: 0.95, opacity: 0 }}
 				onclick={(e) => e.stopPropagation()}
 			>
@@ -204,7 +204,7 @@
 						</div>
 					</div>
 
-					<div class="space-y-4 rounded-[1.5rem] border border-stone-100 bg-stone-50/50 p-6">
+					<div class="space-y-4 rounded-2xl border border-stone-100 bg-stone-50/50 p-6">
 						<h3
 							class="flex items-center gap-2 text-xs font-black tracking-widest text-stone-400 uppercase"
 						>
