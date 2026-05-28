@@ -284,7 +284,9 @@
 
 		{#if $authStore.user?.role === Role.SUPERADMIN || $authStore.user?.role === Role.ADMIN}
 			<Button onclick={openCreateCourseModal}>
-				<PlusIcon class="mr-2 h-5 w-5" />
+				{#snippet leftIcon()}
+					<PlusIcon class="mr-2 h-5 w-5" />
+				{/snippet}
 				<span>Nuevo Curso</span>
 			</Button>
 		{/if}
@@ -359,11 +361,7 @@
 		{:else if courses.length > 0}
 			<div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
 				{#each courses as course (course.id)}
-					<CourseCard
-						{course}
-						statusVisible={true}
-						onclick={() => handleCourseClick(course.slug)}
-					>
+					<CourseCard {course} statusVisible={true} onclick={() => handleCourseClick(course.slug)}>
 						{#snippet actions()}
 							{#if $authStore.user?.role === Role.SUPERADMIN || $authStore.user?.role === Role.ADMIN}
 								<div class="relative">

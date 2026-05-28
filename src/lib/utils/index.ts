@@ -8,3 +8,4 @@ export * from './debounce';
 export * from './formatDurationHours';
 export * from './getEnvVariable';
 export * from './getGrettingMessage';
+export * from './getCurrentYear';

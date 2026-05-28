@@ -73,3 +73,4 @@ export { default as SidebarCollapseRightIcon } from './sidebarCollapseRightIcon.
 export { default as BellIcon } from './bellIcon.svelte';
 export { default as SettingsIcon } from './settingsIcon.svelte';
 export { default as CakeIcon } from './cakeIcon.svelte';
+export { default as ChevronRightIcon } from './chevronRightIcon.svelte';
