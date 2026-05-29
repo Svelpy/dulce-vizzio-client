@@ -9,7 +9,7 @@
 	<div class="flex flex-1 flex-col overflow-hidden transition-all duration-300">
 		<Navbar />
 
-		<main class="flex-1 overflow-y-auto p-6">
+		<main class="flex-1 overflow-y-auto p-2 md:p-6">
 			{@render children?.()}
 		</main>
 	</div>
