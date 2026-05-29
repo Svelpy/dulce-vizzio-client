@@ -128,13 +128,13 @@
 						experto. Transforma tu pasión en una carrera exitosa.
 					</p>
 					<div class="flex flex-col justify-center gap-4 sm:flex-row lg:justify-start">
-						<a
+						<!-- <a
 							href="https://forms.gle/ojUoVj5PEqqutXag6"
 							target="_blank"
 							class="inline-flex items-center justify-center rounded-xl bg-linear-to-r from-rose-500 to-orange-500 px-8 py-3 text-lg font-bold text-white shadow-lg transition-transform hover:scale-105 hover:shadow-rose-500/50"
 						>
 							✨ Inscribirse Ahora
-						</a>
+						</a> -->
 						<Button size="lg" variant="primary" onclick={() => redirect('/app/courses')}>
 							Explorar Cursos
 						</Button>
@@ -297,15 +297,25 @@
 				<div>
 					<h4 class="mb-4 font-bold">Cursos</h4>
 					<ul class="space-y-2">
-						<li><a href={resolve('/app/courses')} class="transition-colors hover:text-white">Explorar</a></li>
 						<li>
-							<a href={resolve('/app/courses') + '?difficulty=BEGINNER'} class="transition-colors">Principiante</a>
+							<a href={resolve('/app/courses')} class="transition-colors hover:text-white"
+								>Explorar</a
+							>
 						</li>
 						<li>
-							<a href={resolve('/app/courses') + '?difficulty=BEGINNER'} class="transition-colors">Intermedio</a>
+							<a href={resolve('/app/courses') + '?difficulty=BEGINNER'} class="transition-colors"
+								>Principiante</a
+							>
 						</li>
 						<li>
-							<a href={resolve('/app/courses') + '?difficulty=ADVANCED'} class="transition-colors">Avanzado</a>
+							<a href={resolve('/app/courses') + '?difficulty=BEGINNER'} class="transition-colors"
+								>Intermedio</a
+							>
+						</li>
+						<li>
+							<a href={resolve('/app/courses') + '?difficulty=ADVANCED'} class="transition-colors"
+								>Avanzado</a
+							>
 						</li>
 					</ul>
 				</div>
