@@ -1,5 +1,5 @@
 import { apiDulceVizzio } from '$lib/config';
-import type { LoginCredentials, LoginResponse } from '$lib/interfaces';
+import type { LoginCredentials, LoginResponse, RegisterCredentials } from '$lib/interfaces';
 import type { User } from '$lib/interfaces';
 import { AUTH_TOKEN_KEY, AUTH_USER_KEY } from '$lib/constants';
 
@@ -103,6 +103,19 @@ class AuthService {
 		} catch (error) {
 			// Si falla, asegurar limpieza
 			authService.clearSession();
+			throw error;
+		}
+	}
+
+	/**
+	 * Realiza el registro de un nuevo usuario contra la API.
+	 */
+	async register(credentials: RegisterCredentials): Promise<User> {
+		try {
+			console.log('Register Credentials:', credentials);
+			const response = await apiDulceVizzio.postPublic<User>('/auth/register', credentials);
+			return response;
+		} catch (error) {
 			throw error;
 		}
 	}

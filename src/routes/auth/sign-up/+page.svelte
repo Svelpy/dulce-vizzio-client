@@ -2,14 +2,27 @@
 	import { page } from '$app/state';
 	import { Loader, MainLayout } from '$lib/components/ui';
 	import { COURSE_CATEGORIES } from '$lib/data';
-	import { ChevronRightIcon, EyeIcon, EyeOffIcon, MailIcon } from '$lib/icons/outline';
+	import {
+		ChevronRightIcon,
+		EyeIcon,
+		EyeOffIcon,
+		MailIcon,
+		UserIcon,
+		PhoneIcon,
+		CakeIcon
+	} from '$lib/icons/outline';
 	import { ExclamationCircleIcon, LockIcon } from '$lib/icons/solid';
 	import { authService } from '$lib/services/auth.service';
 	import { getCurrentYear, redirect } from '$lib/utils';
 	import { onMount } from 'svelte';
 
+	let full_name: string = $state('');
 	let email: string = $state('');
 	let password: string = $state('');
+	let username: string = $state('');
+	let phone_number: string = $state('');
+	let birth_date: string = $state('');
+
 	let showPassword: boolean = $state(false);
 	let loading: boolean = $state(false);
 	let errorMessage: string = $state('');
@@ -27,12 +40,20 @@
 		loading = true;
 
 		try {
-			await authService.login({ email, password });
-			const redirectTo = page.url.searchParams.get('redirectTo') || '/app/dashboard';
-			await redirect(redirectTo, true);
+			await authService.register({
+				full_name,
+				email,
+				password,
+				username: username || undefined,
+				phone_number: phone_number || undefined,
+				birth_date: birth_date || undefined
+			});
+			
+			// Redirigir a login después de un registro exitoso
+			await redirect('/auth/sign-in', true);
 		} catch (error: unknown) {
 			const err = error as { message?: string };
-			errorMessage = err?.message || 'Credenciales inválidas. Por favor, intenta nuevamente.';
+			errorMessage = err?.message || 'Error al registrar. Por favor, intenta nuevamente.';
 		} finally {
 			loading = false;
 		}
@@ -44,9 +65,9 @@
 </script>
 
 <MainLayout
-	title="Iniciar Sesión"
-	description="Ingresá para continuar con tus clases"
-	class="container m-auto flex min-h-dvh w-full items-center justify-center"
+	title="Crear Cuenta"
+	description="Registrate para comenzar con tus clases"
+	class="container m-auto flex min-h-dvh w-full items-center justify-center py-8"
 >
 	<div class="flex h-full w-full max-w-md flex-col items-center gap-8">
 		<!-- Título -->
@@ -67,12 +88,38 @@
 		>
 			<div class="mb-6">
 				<h2 class="font-['Fraunces'] text-2xl font-normal text-[#3d1a24]">
-					Hola, <em class="text-[#e9829a] italic">bienvenida</em> 🌸
+					Crear <em class="text-[#e9829a] italic">cuenta</em> ✨
 				</h2>
-				<p class="mt-1 text-sm font-light text-[#b07080]">Ingresá para continuar con tus clases</p>
+				<p class="mt-1 text-sm font-light text-[#b07080]">Completá tus datos para sumarte</p>
 			</div>
 
 			<form onsubmit={handleSubmit} class="flex flex-col gap-4">
+				<!-- Nombre Completo -->
+				<div class="flex flex-col gap-1.5">
+					<label
+						for="full_name"
+						class="text-[11px] font-semibold tracking-[0.15em] text-[#c9838f] uppercase"
+					>
+						Nombre y Apellido
+					</label>
+					<div class="relative">
+						<div
+							class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-[#e9829a]"
+						>
+							<UserIcon />
+						</div>
+						<input
+							id="full_name"
+							type="text"
+							bind:value={full_name}
+							placeholder="Tu nombre completo"
+							required
+							disabled={loading}
+							class="w-full rounded-2xl border border-[#fce4ec] bg-[#fff8fa] py-3.5 pr-4 pl-11 text-sm text-[#3d1a24] placeholder-[#e0b8c0] transition-all outline-none focus:border-[#e9829a] focus:bg-white focus:ring-2 focus:ring-[#e9829a]/10 disabled:opacity-60"
+						/>
+					</div>
+				</div>
+
 				<!-- Email -->
 				<div class="flex flex-col gap-1.5">
 					<label
@@ -99,13 +146,87 @@
 					</div>
 				</div>
 
+				<!-- Username (Opcional) -->
+				<div class="flex flex-col gap-1.5">
+					<label
+						for="username"
+						class="text-[11px] font-semibold tracking-[0.15em] text-[#c9838f] uppercase"
+					>
+						Usuario <span class="text-[9px] lowercase opacity-70">(opcional)</span>
+					</label>
+					<div class="relative">
+						<div
+							class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-[#e9829a]"
+						>
+							<UserIcon />
+						</div>
+						<input
+							id="username"
+							type="text"
+							bind:value={username}
+							placeholder="Tu usuario"
+							disabled={loading}
+							class="w-full rounded-2xl border border-[#fce4ec] bg-[#fff8fa] py-3.5 pr-4 pl-11 text-sm text-[#3d1a24] placeholder-[#e0b8c0] transition-all outline-none focus:border-[#e9829a] focus:bg-white focus:ring-2 focus:ring-[#e9829a]/10 disabled:opacity-60"
+						/>
+					</div>
+				</div>
+
+				<!-- Phone Number (Opcional) -->
+				<div class="flex flex-col gap-1.5">
+					<label
+						for="phone_number"
+						class="text-[11px] font-semibold tracking-[0.15em] text-[#c9838f] uppercase"
+					>
+						Teléfono <span class="text-[9px] lowercase opacity-70">(opcional)</span>
+					</label>
+					<div class="relative">
+						<div
+							class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-[#e9829a]"
+						>
+							<PhoneIcon />
+						</div>
+						<input
+							id="phone_number"
+							type="tel"
+							bind:value={phone_number}
+							placeholder="+54 9 11 1234-5678"
+							disabled={loading}
+							class="w-full rounded-2xl border border-[#fce4ec] bg-[#fff8fa] py-3.5 pr-4 pl-11 text-sm text-[#3d1a24] placeholder-[#e0b8c0] transition-all outline-none focus:border-[#e9829a] focus:bg-white focus:ring-2 focus:ring-[#e9829a]/10 disabled:opacity-60"
+						/>
+					</div>
+				</div>
+
+				<!-- Birth Date (Opcional) -->
+				<div class="flex flex-col gap-1.5">
+					<label
+						for="birth_date"
+						class="text-[11px] font-semibold tracking-[0.15em] text-[#c9838f] uppercase"
+					>
+						Fecha de nacimiento <span class="text-[9px] lowercase opacity-70">(opcional)</span>
+					</label>
+					<div class="relative">
+						<div
+							class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-[#e9829a]"
+						>
+							<CakeIcon />
+						</div>
+						<input
+							id="birth_date"
+							type="date"
+							bind:value={birth_date}
+							disabled={loading}
+							class="w-full rounded-2xl border border-[#fce4ec] bg-[#fff8fa] py-3.5 pr-4 pl-11 text-sm text-[#3d1a24] placeholder-[#e0b8c0] transition-all outline-none focus:border-[#e9829a] focus:bg-white focus:ring-2 focus:ring-[#e9829a]/10 disabled:opacity-60"
+						/>
+					</div>
+				</div>
+
 				<!-- Contraseña -->
 				<div class="flex flex-col gap-1.5">
 					<label
 						for="password"
 						class="text-[11px] font-semibold tracking-[0.15em] text-[#c9838f] uppercase"
 					>
-						Contraseña
+						Contraseña <span class="text-[9px] lowercase opacity-70">(1 mayúscula y 1 minúscula)</span>
 					</label>
 					<div class="relative">
 						<div
@@ -136,14 +257,6 @@
 							{/if}
 						</button>
 					</div>
-					<div class="flex justify-end">
-						<a
-							href="/forgot-password"
-							class="text-xs font-medium text-[#e9829a] opacity-80 transition-opacity hover:opacity-100"
-						>
-							¿Olvidaste tu contraseña?
-						</a>
-					</div>
 				</div>
 
 				<!-- Error -->
@@ -164,21 +277,21 @@
 				>
 					{#if loading}
 						<Loader />
-						<span>Ingresando...</span>
+						<span>Registrando...</span>
 					{:else}
-						<span>Entrar a clase</span>
+						<span>Crear cuenta</span>
 						<ChevronRightIcon />
 					{/if}
 				</button>
-
+				
 				<div class="mt-4 flex justify-center">
 					<p class="text-sm text-[#b07080]">
-						¿No tienes una cuenta?
+						¿Ya tienes una cuenta?
 						<a
-							href="/auth/sign-up"
+							href="/auth/sign-in"
 							class="font-medium text-[#e9829a] transition-colors hover:text-[#e06882]"
 						>
-							Regístrate
+							Iniciar sesión
 						</a>
 					</p>
 				</div>
