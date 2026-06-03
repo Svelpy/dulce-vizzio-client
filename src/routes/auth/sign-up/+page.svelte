@@ -20,7 +20,8 @@
 	let email: string = $state('');
 	let password: string = $state('');
 	let username: string = $state('');
-	let phone_number: string = $state('');
+	let country_code: string = $state('+591');
+	let local_phone_number: string = $state('');
 	let birth_date: string = $state('');
 
 	let showPassword: boolean = $state(false);
@@ -45,10 +46,10 @@
 				email,
 				password,
 				username: username || undefined,
-				phone_number: phone_number || undefined,
+				phone_number: local_phone_number ? `${country_code.startsWith('+') ? '' : '+'}${country_code}${local_phone_number}` : undefined,
 				birth_date: birth_date || undefined
 			});
-			
+
 			// Redirigir a login después de un registro exitoso
 			await redirect('/auth/sign-in', true);
 		} catch (error: unknown) {
@@ -174,25 +175,37 @@
 				<!-- Phone Number (Opcional) -->
 				<div class="flex flex-col gap-1.5">
 					<label
-						for="phone_number"
+						for="local_phone_number"
 						class="text-[11px] font-semibold tracking-[0.15em] text-[#c9838f] uppercase"
 					>
 						Teléfono <span class="text-[9px] lowercase opacity-70">(opcional)</span>
 					</label>
-					<div class="relative">
-						<div
-							class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-[#e9829a]"
-						>
-							<PhoneIcon />
+					<div class="flex gap-2">
+						<div class="relative w-24 shrink-0">
+							<input
+								id="country_code"
+								type="text"
+								bind:value={country_code}
+								placeholder="+54"
+								disabled={loading}
+								class="w-full rounded-2xl border border-[#fce4ec] bg-[#fff8fa] px-4 py-3.5 text-center text-sm text-[#3d1a24] placeholder-[#e0b8c0] transition-all outline-none focus:border-[#e9829a] focus:bg-white focus:ring-2 focus:ring-[#e9829a]/10 disabled:opacity-60"
+							/>
 						</div>
-						<input
-							id="phone_number"
-							type="tel"
-							bind:value={phone_number}
-							placeholder="+54 9 11 1234-5678"
-							disabled={loading}
-							class="w-full rounded-2xl border border-[#fce4ec] bg-[#fff8fa] py-3.5 pr-4 pl-11 text-sm text-[#3d1a24] placeholder-[#e0b8c0] transition-all outline-none focus:border-[#e9829a] focus:bg-white focus:ring-2 focus:ring-[#e9829a]/10 disabled:opacity-60"
-						/>
+						<div class="relative flex-1">
+							<div
+								class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-[#e9829a]"
+							>
+								<PhoneIcon />
+							</div>
+							<input
+								id="local_phone_number"
+								type="tel"
+								bind:value={local_phone_number}
+								placeholder="9 11 1234-5678"
+								disabled={loading}
+								class="w-full rounded-2xl border border-[#fce4ec] bg-[#fff8fa] py-3.5 pr-4 pl-11 text-sm text-[#3d1a24] placeholder-[#e0b8c0] transition-all outline-none focus:border-[#e9829a] focus:bg-white focus:ring-2 focus:ring-[#e9829a]/10 disabled:opacity-60"
+							/>
+						</div>
 					</div>
 				</div>
 
@@ -226,7 +239,9 @@
 						for="password"
 						class="text-[11px] font-semibold tracking-[0.15em] text-[#c9838f] uppercase"
 					>
-						Contraseña <span class="text-[9px] lowercase opacity-70">(1 mayúscula y 1 minúscula)</span>
+						Contraseña <span class="text-[9px] lowercase opacity-70"
+							>(1 mayúscula y 1 minúscula)</span
+						>
 					</label>
 					<div class="relative">
 						<div
@@ -283,7 +298,7 @@
 						<ChevronRightIcon />
 					{/if}
 				</button>
-				
+
 				<div class="mt-4 flex justify-center">
 					<p class="text-sm text-[#b07080]">
 						¿Ya tienes una cuenta?
