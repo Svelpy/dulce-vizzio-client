@@ -28,8 +28,7 @@
 
 		try {
 			await authService.login({ email, password });
-			const redirectTo = page.url.searchParams.get('redirectTo') || '/app/dashboard';
-			await redirect(redirectTo, true);
+			redirect('/app/dashboard', true);
 		} catch (error: unknown) {
 			const err = error as { message?: string };
 			errorMessage = err?.message || 'Credenciales inválidas. Por favor, intenta nuevamente.';
@@ -136,14 +135,14 @@
 							{/if}
 						</button>
 					</div>
-					<div class="flex justify-end">
+					<!-- <div class="flex justify-end">
 						<a
 							href="/forgot-password"
 							class="text-xs font-medium text-[#e9829a] opacity-80 transition-opacity hover:opacity-100"
 						>
 							¿Olvidaste tu contraseña?
 						</a>
-					</div>
+					</div> -->
 				</div>
 
 				<!-- Error -->

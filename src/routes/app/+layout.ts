@@ -13,7 +13,7 @@ import type { LayoutLoad } from './$types';
 export const load: LayoutLoad = async ({ url }) => {
 	if (browser) {
 		// Forzar inicialización del store desde localStorage
-		authStore.initialize();
+		await authStore.initialize();
 
 		const state = get(authStore);
 

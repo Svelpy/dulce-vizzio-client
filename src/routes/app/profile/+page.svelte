@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { authStore, currentUser } from '$lib/stores/auth.store';
 	import { Button, Input, MainLayout } from '$lib/components/ui';
-	import { alert } from '$lib/utils';
+	import { alert, redirect } from '$lib/utils';
 	import {
 		MailIcon,
 		UserIcon,
@@ -19,7 +19,7 @@
 	let isEditingPassword = $state(false);
 	let isSubmitting = $state(false);
 
-	let canEdit = $derived($currentUser?.role === 'ADMIN' || $currentUser?.role === 'SUPERADMIN');
+	let canEdit = $derived(!!$currentUser);
 
 	// Avatar
 	let isUploadingAvatar = $state(false);
@@ -30,7 +30,6 @@
 	let formData = $state({
 		full_name: '',
 		username: '',
-		email: '',
 		phone_number: '',
 		birth_date: ''
 	});
@@ -51,7 +50,6 @@
 			formData = {
 				full_name: $currentUser.full_name || '',
 				username: $currentUser.username || '',
-				email: $currentUser.email || '',
 				phone_number: $currentUser.phone_number || '',
 				birth_date: $currentUser.birth_date
 					? new Date($currentUser.birth_date).toISOString().split('T')[0]
@@ -70,13 +68,24 @@
 
 		isSubmitting = true;
 		try {
-			const updatedUser = await userService.update($currentUser.id, formData);
+			const payload = {
+				full_name: formData.full_name,
+				username: formData.username,
+				phone_number: formData.phone_number,
+				birth_date: formData.birth_date
+			};
+			const updatedUser = await userService.update($currentUser.id, payload as any);
 			authStore.updateUser(updatedUser);
 			alert('success', 'Perfil actualizado correctamente');
 			isEditing = false;
-		} catch (error) {
+		} catch (error: any) {
 			console.error('Error updating profile:', error);
-			alert('error', 'Error al actualizar el perfil');
+			const errorMessage =
+				error?.response?.data?.detail ||
+				error?.detail ||
+				error?.message ||
+				'Error al actualizar el perfil';
+			alert('error', errorMessage);
 		} finally {
 			isSubmitting = false;
 		}
@@ -149,6 +158,7 @@
 
 	async function handleLogout() {
 		await authStore.logout();
+		redirect('/auth/sign-in');
 	}
 </script>
 
@@ -281,7 +291,9 @@
 
 				<div class="divide-y divide-sweet-pink-50 rounded-[32px] bg-white p-2 shadow-sweet">
 					<!-- Full Name Row -->
-					<div class="flex min-h-[72px] items-center justify-between gap-4 p-4 px-6">
+					<div
+						class="flex min-h-[72px] flex-col items-start justify-between gap-4 p-4 px-6 md:flex-row md:items-center"
+					>
 						<div class="flex flex-1 items-center gap-4">
 							<div
 								class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sweet-pink-50"
@@ -303,7 +315,9 @@
 					</div>
 
 					<!-- Username Row -->
-					<div class="flex min-h-[72px] items-center justify-between gap-4 p-4 px-6">
+					<div
+						class="flex min-h-[72px] flex-col items-start justify-between gap-4 p-4 px-6 md:flex-row md:items-center"
+					>
 						<div class="flex flex-1 items-center gap-4">
 							<div
 								class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sweet-pink-50"
@@ -325,7 +339,9 @@
 					</div>
 
 					<!-- Birth Date Row -->
-					<div class="flex min-h-[72px] items-center justify-between gap-4 p-4 px-6">
+					<div
+						class="flex min-h-[72px] flex-col items-start justify-between gap-4 p-4 px-6 md:flex-row md:items-center"
+					>
 						<div class="flex flex-1 items-center gap-4">
 							<div
 								class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sweet-pink-50"
@@ -353,7 +369,9 @@
 					</div>
 
 					<!-- Email Row -->
-					<div class="flex min-h-[72px] items-center justify-between gap-4 p-4 px-6">
+					<div
+						class="flex min-h-[72px] flex-col items-start justify-between gap-4 p-4 px-6 md:flex-row md:items-center"
+					>
 						<div class="flex flex-1 items-center gap-4">
 							<div
 								class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sweet-pink-50"
@@ -363,25 +381,17 @@
 							<span class="text-sm font-bold text-sweet-brown/60">Correo electrónico</span>
 						</div>
 						<div class="flex-1 text-right">
-							{#if isEditing}
-								<Input
-									type="email"
-									bind:value={formData.email}
-									class="h-10 border-sweet-pink-100 bg-sweet-pink-50/20 text-right font-bold"
-								/>
-							{:else}
-								<div
-									class="flex items-center justify-end gap-1 text-sm font-black text-sweet-brown"
-								>
-									{$currentUser?.email}
-									<ChevronsRightIcon class="h-4 w-4" />
-								</div>
-							{/if}
+							<div class="flex items-center justify-end gap-1 text-sm font-black text-sweet-brown">
+								{$currentUser?.email}
+								<ChevronsRightIcon class="h-4 w-4" />
+							</div>
 						</div>
 					</div>
 
 					<!-- Phone Row -->
-					<div class="flex min-h-[72px] items-center justify-between gap-4 p-4 px-6">
+					<div
+						class="flex min-h-[72px] flex-col items-start justify-between gap-4 p-4 px-6 md:flex-row md:items-center"
+					>
 						<div class="flex flex-1 items-center gap-4">
 							<div
 								class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sweet-pink-50"
@@ -409,7 +419,9 @@
 					</div>
 
 					<!-- Registration Date (Read Only) Row -->
-					<div class="flex min-h-[72px] items-center justify-between gap-4 p-4 px-6">
+					<div
+						class="flex min-h-[72px] flex-col items-start justify-between gap-4 p-4 px-6 md:flex-row md:items-center"
+					>
 						<div class="flex flex-1 items-center gap-4">
 							<div
 								class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sweet-pink-50"

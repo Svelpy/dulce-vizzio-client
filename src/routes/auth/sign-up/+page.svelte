@@ -2,29 +2,19 @@
 	import { page } from '$app/state';
 	import { Loader, MainLayout } from '$lib/components/ui';
 	import { COURSE_CATEGORIES } from '$lib/data';
-	import {
-		ChevronRightIcon,
-		EyeIcon,
-		EyeOffIcon,
-		MailIcon,
-		UserIcon,
-		PhoneIcon,
-		CakeIcon
-	} from '$lib/icons/outline';
-	import { ExclamationCircleIcon, LockIcon } from '$lib/icons/solid';
+	import { ChevronRightIcon, MailIcon, UserIcon, PhoneIcon, CakeIcon } from '$lib/icons/outline';
+	import { ExclamationCircleIcon } from '$lib/icons/solid';
 	import { authService } from '$lib/services/auth.service';
 	import { getCurrentYear, redirect } from '$lib/utils';
+	import { alert } from '$lib/utils/alert';
 	import { onMount } from 'svelte';
 
 	let full_name: string = $state('');
 	let email: string = $state('');
-	let password: string = $state('');
-	let username: string = $state('');
 	let country_code: string = $state('+591');
 	let local_phone_number: string = $state('');
 	let birth_date: string = $state('');
 
-	let showPassword: boolean = $state(false);
 	let loading: boolean = $state(false);
 	let errorMessage: string = $state('');
 
@@ -44,12 +34,11 @@
 			await authService.register({
 				full_name,
 				email,
-				password,
-				username: username || undefined,
-				phone_number: local_phone_number ? `${country_code.startsWith('+') ? '' : '+'}${country_code}${local_phone_number}` : undefined,
-				birth_date: birth_date || undefined
+				phone_number: `${country_code.startsWith('+') ? '' : '+'}${country_code}${local_phone_number}`,
+				birth_date
 			});
 
+			alert('success', 'Registro exitoso. ¡Bienvenido a Dulce Vizzio!');
 			// Redirigir a login después de un registro exitoso
 			await redirect('/auth/sign-in', true);
 		} catch (error: unknown) {
@@ -58,10 +47,6 @@
 		} finally {
 			loading = false;
 		}
-	}
-
-	function togglePasswordVisibility() {
-		showPassword = !showPassword;
 	}
 </script>
 
@@ -147,38 +132,13 @@
 					</div>
 				</div>
 
-				<!-- Username (Opcional) -->
-				<div class="flex flex-col gap-1.5">
-					<label
-						for="username"
-						class="text-[11px] font-semibold tracking-[0.15em] text-[#c9838f] uppercase"
-					>
-						Usuario <span class="text-[9px] lowercase opacity-70">(opcional)</span>
-					</label>
-					<div class="relative">
-						<div
-							class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-[#e9829a]"
-						>
-							<UserIcon />
-						</div>
-						<input
-							id="username"
-							type="text"
-							bind:value={username}
-							placeholder="Tu usuario"
-							disabled={loading}
-							class="w-full rounded-2xl border border-[#fce4ec] bg-[#fff8fa] py-3.5 pr-4 pl-11 text-sm text-[#3d1a24] placeholder-[#e0b8c0] transition-all outline-none focus:border-[#e9829a] focus:bg-white focus:ring-2 focus:ring-[#e9829a]/10 disabled:opacity-60"
-						/>
-					</div>
-				</div>
-
-				<!-- Phone Number (Opcional) -->
+				<!-- Phone Number -->
 				<div class="flex flex-col gap-1.5">
 					<label
 						for="local_phone_number"
 						class="text-[11px] font-semibold tracking-[0.15em] text-[#c9838f] uppercase"
 					>
-						Teléfono <span class="text-[9px] lowercase opacity-70">(opcional)</span>
+						Teléfono
 					</label>
 					<div class="flex gap-2">
 						<div class="relative w-24 shrink-0">
@@ -187,6 +147,7 @@
 								type="text"
 								bind:value={country_code}
 								placeholder="+54"
+								required
 								disabled={loading}
 								class="w-full rounded-2xl border border-[#fce4ec] bg-[#fff8fa] px-4 py-3.5 text-center text-sm text-[#3d1a24] placeholder-[#e0b8c0] transition-all outline-none focus:border-[#e9829a] focus:bg-white focus:ring-2 focus:ring-[#e9829a]/10 disabled:opacity-60"
 							/>
@@ -201,7 +162,8 @@
 								id="local_phone_number"
 								type="tel"
 								bind:value={local_phone_number}
-								placeholder="9 11 1234-5678"
+								placeholder="67787486"
+								required
 								disabled={loading}
 								class="w-full rounded-2xl border border-[#fce4ec] bg-[#fff8fa] py-3.5 pr-4 pl-11 text-sm text-[#3d1a24] placeholder-[#e0b8c0] transition-all outline-none focus:border-[#e9829a] focus:bg-white focus:ring-2 focus:ring-[#e9829a]/10 disabled:opacity-60"
 							/>
@@ -209,13 +171,13 @@
 					</div>
 				</div>
 
-				<!-- Birth Date (Opcional) -->
+				<!-- Birth Date -->
 				<div class="flex flex-col gap-1.5">
 					<label
 						for="birth_date"
 						class="text-[11px] font-semibold tracking-[0.15em] text-[#c9838f] uppercase"
 					>
-						Fecha de nacimiento <span class="text-[9px] lowercase opacity-70">(opcional)</span>
+						Fecha de nacimiento
 					</label>
 					<div class="relative">
 						<div
@@ -227,50 +189,10 @@
 							id="birth_date"
 							type="date"
 							bind:value={birth_date}
+							required
 							disabled={loading}
 							class="w-full rounded-2xl border border-[#fce4ec] bg-[#fff8fa] py-3.5 pr-4 pl-11 text-sm text-[#3d1a24] placeholder-[#e0b8c0] transition-all outline-none focus:border-[#e9829a] focus:bg-white focus:ring-2 focus:ring-[#e9829a]/10 disabled:opacity-60"
 						/>
-					</div>
-				</div>
-
-				<!-- Contraseña -->
-				<div class="flex flex-col gap-1.5">
-					<label
-						for="password"
-						class="text-[11px] font-semibold tracking-[0.15em] text-[#c9838f] uppercase"
-					>
-						Contraseña <span class="text-[9px] lowercase opacity-70"
-							>(1 mayúscula y 1 minúscula)</span
-						>
-					</label>
-					<div class="relative">
-						<div
-							class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-[#e9829a]"
-						>
-							<LockIcon />
-						</div>
-						<input
-							id="password"
-							type={showPassword ? 'text' : 'password'}
-							bind:value={password}
-							placeholder="••••••••"
-							required
-							disabled={loading}
-							class="w-full rounded-2xl border border-[#fce4ec] bg-[#fff8fa] py-3.5 pr-12 pl-11 text-sm text-[#3d1a24] placeholder-[#e0b8c0] transition-all outline-none focus:border-[#e9829a] focus:bg-white focus:ring-2 focus:ring-[#e9829a]/10 disabled:opacity-60"
-						/>
-						<button
-							type="button"
-							onclick={togglePasswordVisibility}
-							disabled={loading}
-							aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-							class="absolute inset-y-0 right-3.5 flex items-center text-[#e0b8c0] transition-colors hover:text-[#e9829a] disabled:opacity-60"
-						>
-							{#if showPassword}
-								<EyeOffIcon />
-							{:else}
-								<EyeIcon />
-							{/if}
-						</button>
 					</div>
 				</div>
 

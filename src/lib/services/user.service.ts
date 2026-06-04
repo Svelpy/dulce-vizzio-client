@@ -40,7 +40,7 @@ class UserService {
 	 * Actualiza un usuario existente
 	 */
 	update(id: string, request: UpdateUserRequest): Promise<User> {
-		return apiDulceVizzio.patch<User>(`/users/${id}`, request);
+		return apiDulceVizzio.patch<User>('/auth/me', request);
 	}
 
 	/**
@@ -63,7 +63,7 @@ class UserService {
 	updateRole(id: string, new_role: UserRole): Promise<{ new_role: UserRole }> {
 		return apiDulceVizzio.patch<{ new_role: UserRole }>(`/users/${id}/role`, {
 			new_role
-	});
+		});
 	}
 
 	/**

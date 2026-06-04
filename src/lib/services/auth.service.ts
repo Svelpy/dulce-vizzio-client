@@ -112,7 +112,7 @@ class AuthService {
 	 */
 	async register(credentials: RegisterCredentials): Promise<User> {
 		try {
-			console.log('Register Credentials:', credentials);
+			//console.log('Register Credentials:', credentials);
 			const response = await apiDulceVizzio.postPublic<User>('/auth/register', credentials);
 			return response;
 		} catch (error) {
